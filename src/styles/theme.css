@@ -5873,3 +5873,648 @@ body.profile-page .profile-actions {
     position: static;
   }
 }
+
+/* ============================================================
+   HOME V2 — proportional responsive pass
+   Menyatukan skala, lebar konten, dan kepadatan antar-breakpoint.
+   ============================================================ */
+body.home-page {
+  --home-content-width: 1160px;
+  --home-section-space: clamp(56px, 7vw, 84px);
+}
+
+body.home-page .hero-section {
+  width: min(calc(100% - 40px), 1280px);
+  min-height: 570px;
+  margin: 24px auto 0 !important;
+  padding: 64px clamp(44px, 5vw, 72px);
+  gap: clamp(32px, 4vw, 56px);
+  border: 1px solid var(--color-border-default) !important;
+  border-radius: 30px;
+}
+
+body.home-page .hero-content {
+  max-width: 540px;
+}
+
+body.home-page .hero-content h1 {
+  font-size: clamp(42px, 4.2vw, 58px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  margin-bottom: 16px;
+}
+
+body.home-page .hero-lede {
+  max-width: 46ch;
+  margin-bottom: 22px;
+  font-size: 16px;
+  line-height: 1.62;
+}
+
+body.home-page .hero-actions .button {
+  min-height: 46px;
+  padding-inline: 22px;
+  font-size: 13px;
+}
+
+body.home-page .hero-proof {
+  gap: clamp(22px, 3vw, 32px);
+  margin-top: 24px;
+  padding-top: 18px;
+}
+
+body.home-page .hero-proof-item strong {
+  font-size: 23px;
+}
+
+body.home-page .hero-visual {
+  flex-basis: 440px;
+  width: 440px;
+  height: 414px;
+  transform: scale(0.92);
+  transform-origin: center;
+}
+
+body.home-page .category-section,
+body.home-page .request-section,
+body.home-page .how-section,
+body.home-page .role-section,
+body.home-page .trust-section,
+body.home-page .home-faq-section {
+  width: min(100%, var(--home-content-width));
+  max-width: var(--home-content-width);
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+body.home-page .category-section {
+  padding: 40px 20px 20px;
+}
+
+body.home-page .role-section,
+body.home-page .trust-section,
+body.home-page .home-faq-section {
+  margin-top: var(--home-section-space);
+}
+
+body.home-page .role-section-heading {
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 0.5fr);
+  gap: 36px;
+  margin-bottom: 24px;
+}
+
+body.home-page .role-section-heading h2,
+body.home-page .trust-panel h2,
+body.home-page .home-faq-intro h2 {
+  font-size: clamp(30px, 3.3vw, 42px);
+  line-height: 1.06;
+}
+
+body.home-page .section-supporting-copy,
+body.home-page .role-card > p:not(.role-card-label),
+body.home-page .trust-panel > p,
+body.home-page .home-faq-intro > p:not(.section-eyebrow),
+body.home-page .home-faq-list details p {
+  font-size: 15px;
+}
+
+body.home-page .role-card {
+  min-height: 0;
+  padding: 28px;
+  border-radius: 24px;
+}
+
+body.home-page .role-card-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 18px;
+  border-radius: 15px;
+}
+
+body.home-page .role-card h3 {
+  font-size: clamp(25px, 2.6vw, 32px);
+  margin-bottom: 10px;
+}
+
+body.home-page .role-benefits {
+  gap: 7px;
+  margin: 18px 0 22px;
+}
+
+body.home-page .role-benefits li,
+body.home-page .role-card-link {
+  font-size: 14px;
+}
+
+body.home-page .region-shortcuts {
+  margin-top: 14px;
+  padding: 13px 15px;
+}
+
+body.home-page .how-section {
+  padding: var(--home-section-space) 20px 0;
+}
+
+body.home-page .how-section .section-header {
+  margin-bottom: 24px;
+}
+
+body.home-page .how-section .section-header h2,
+body.home-page .request-section .section-header h2,
+body.home-page .category-section h2 {
+  font-size: clamp(24px, 2.7vw, 34px);
+  line-height: 1.12;
+}
+
+body.home-page .how-step {
+  padding: 22px 20px;
+}
+
+body.home-page .how-step h3 {
+  font-size: 16px;
+  margin-bottom: 7px;
+}
+
+body.home-page .how-step p {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+body.home-page .trust-section {
+  grid-template-columns: minmax(0, 1.25fr) minmax(310px, 0.75fr);
+}
+
+body.home-page .trust-panel {
+  padding: 30px;
+  border-radius: 24px;
+}
+
+body.home-page .trust-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 18px;
+}
+
+body.home-page .trust-checks {
+  margin-top: 22px;
+}
+
+body.home-page .trust-checks span {
+  padding: 11px 12px;
+  font-size: 12px;
+}
+
+body.home-page .compensation-panel h3 {
+  font-size: clamp(24px, 2.4vw, 30px);
+}
+
+body.home-page .compensation-options {
+  margin: 18px 0 22px;
+}
+
+body.home-page .request-section {
+  padding: var(--home-section-space) 20px 20px;
+}
+
+body.home-page .home-faq-section {
+  grid-template-columns: minmax(250px, 0.62fr) minmax(0, 1.38fr);
+  gap: 56px;
+  padding: 56px 20px 20px;
+  margin-bottom: 76px;
+}
+
+body.home-page .home-faq-list summary {
+  padding-block: 20px;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+body.home-page .home-faq-list details p {
+  margin-bottom: 20px;
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+  body > header.site-header {
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 10px 18px;
+  }
+
+  .site-wordmark {
+    font-size: 21px;
+  }
+
+  .site-nav {
+    order: initial;
+    flex-basis: auto;
+  }
+
+  .site-nav a {
+    padding: 7px 9px;
+    font-size: 12px;
+  }
+
+  .header-right-actions {
+    gap: 6px;
+  }
+
+  .site-header .search-box-wrapper input[type="search"] {
+    width: 132px;
+  }
+
+  body.home-page .hero-section {
+    width: calc(100% - 32px);
+    min-height: 520px;
+    padding: 54px 42px;
+  }
+
+  body.home-page .hero-content h1 {
+    font-size: clamp(40px, 5vw, 50px);
+  }
+
+  body.home-page .hero-visual {
+    flex-basis: 380px;
+    width: 380px;
+    transform: scale(0.82);
+  }
+
+  body.home-page .trust-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  body > header.site-header {
+    padding: 10px 20px;
+  }
+
+  .menu-toggle {
+    display: inline-block;
+    order: 2;
+    margin-left: auto;
+  }
+
+  .site-nav {
+    display: none;
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .site-nav[data-open="true"] {
+    display: flex;
+  }
+
+  .site-nav ul {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .site-nav a {
+    display: block;
+    padding: 7px 14px;
+    text-align: center;
+  }
+
+  .header-right-actions {
+    order: 1;
+  }
+
+  body.home-page .hero-section {
+    width: calc(100% - 32px);
+    min-height: 0;
+    padding: 44px 40px 36px;
+    gap: 12px;
+  }
+
+  body.home-page .hero-content h1 {
+    max-width: 14ch;
+    font-size: clamp(38px, 6vw, 46px);
+  }
+
+  body.home-page .hero-visual {
+    width: 420px;
+    height: 350px;
+    margin: -4px auto -54px;
+    transform: scale(0.78);
+    transform-origin: top center;
+  }
+
+  body.home-page .role-section,
+  body.home-page .trust-section,
+  body.home-page .home-faq-section {
+    width: calc(100% - 32px);
+  }
+
+  body.home-page .role-section-heading {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  body.home-page .trust-section {
+    grid-template-columns: 1fr;
+  }
+
+  body.home-page .home-faq-section {
+    gap: 36px;
+  }
+}
+
+@media (max-width: 720px) {
+  body.home-page {
+    --home-section-space: 52px;
+  }
+
+  body.home-page .hero-section {
+    width: 100%;
+    margin-top: 0 !important;
+    padding: 34px 20px 26px;
+    border-inline: 0 !important;
+    border-radius: 0;
+  }
+
+  body.home-page .hero-eyebrow {
+    margin-bottom: 12px;
+    font-size: 10px;
+  }
+
+  body.home-page .hero-content h1 {
+    max-width: 12ch;
+    margin-bottom: 14px;
+    font-size: clamp(32px, 9.2vw, 38px);
+    line-height: 1.02;
+  }
+
+  body.home-page .hero-lede {
+    margin-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  body.home-page .hero-actions {
+    width: 100%;
+    gap: 9px;
+  }
+
+  body.home-page .hero-actions .button {
+    min-height: 43px;
+    padding-inline: 17px;
+    font-size: 12px;
+  }
+
+  body.home-page .hero-proof {
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+  }
+
+  body.home-page .hero-proof-item strong {
+    font-size: 20px;
+  }
+
+  body.home-page .hero-proof-item span {
+    font-size: 10px;
+  }
+
+  body.home-page .hero-visual {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    margin: 12px auto 0;
+    transform: none;
+    grid-template-areas: "need offer";
+  }
+
+  body.home-page .hero-visual .visual-card {
+    min-height: 132px;
+    padding: 14px 12px 12px;
+  }
+
+  body.home-page .hero-visual .visual-card-sm,
+  body.home-page .visual-link-chip {
+    display: none;
+  }
+
+  body.home-page .hero-visual .vc-title {
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  body.home-page .hero-visual .vc-meta,
+  body.home-page .hero-visual .vc-kicker {
+    font-size: 9px;
+  }
+
+  body.home-page .category-section,
+  body.home-page .request-section,
+  body.home-page .how-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  body.home-page .category-section {
+    padding-top: 30px;
+  }
+
+  body.home-page .category-grid {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 2px 1px 10px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  body.home-page .category-card {
+    flex: 0 0 154px;
+    min-height: 126px;
+    padding: 16px;
+    scroll-snap-align: start;
+  }
+
+  body.home-page .role-section,
+  body.home-page .trust-section,
+  body.home-page .home-faq-section {
+    width: calc(100% - 24px);
+  }
+
+  body.home-page .role-section-heading h2,
+  body.home-page .trust-panel h2,
+  body.home-page .home-faq-intro h2 {
+    font-size: 29px;
+  }
+
+  body.home-page .section-supporting-copy {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  body.home-page .role-grid {
+    gap: 14px;
+  }
+
+  body.home-page .role-card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  body.home-page .role-card-icon {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 14px;
+  }
+
+  body.home-page .role-card h3 {
+    font-size: 25px;
+  }
+
+  body.home-page .role-card > p:not(.role-card-label) {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  body.home-page .role-benefits {
+    margin: 14px 0 18px;
+  }
+
+  body.home-page .role-benefits li {
+    font-size: 13px;
+  }
+
+  body.home-page .region-shortcuts a {
+    font-size: 11px;
+  }
+
+  body.home-page .how-section .section-header h2,
+  body.home-page .request-section .section-header h2,
+  body.home-page .category-section h2 {
+    font-size: 26px;
+  }
+
+  body.home-page .how-section .how-grid {
+    gap: 12px;
+  }
+
+  body.home-page .how-step {
+    min-height: 112px;
+    padding: 18px 16px 18px 68px;
+  }
+
+  body.home-page .how-step .how-num {
+    position: absolute;
+    left: 16px;
+    top: 18px;
+    min-width: 38px;
+    height: 30px;
+    margin: 0;
+  }
+
+  body.home-page .how-step h3 {
+    font-size: 15px;
+  }
+
+  body.home-page .how-step p {
+    font-size: 12px;
+  }
+
+  body.home-page .trust-panel {
+    padding: 22px 20px;
+    border-radius: 20px;
+  }
+
+  body.home-page .trust-checks {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    margin-top: 16px;
+  }
+
+  body.home-page .trust-checks span {
+    padding: 9px 10px;
+  }
+
+  body.home-page .compensation-panel h3 {
+    font-size: 24px;
+  }
+
+  body.home-page .compensation-options {
+    margin: 14px 0 18px;
+  }
+
+  body.home-page .home-faq-section {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    padding: 40px 8px 8px;
+    margin-bottom: 56px;
+  }
+
+  body.home-page .home-faq-list summary {
+    padding: 17px 38px 17px 0;
+    font-size: 15px;
+  }
+
+  body.home-page .home-faq-list details p {
+    margin-right: 24px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 600px) {
+  body > header.site-header {
+    position: relative;
+    flex-wrap: nowrap;
+    min-height: 62px;
+    padding: 10px 16px;
+    gap: 8px;
+  }
+
+  .site-wordmark {
+    font-size: 21px;
+  }
+
+  .header-right-actions {
+    order: initial;
+    flex: 0 0 auto;
+    margin-left: auto;
+    gap: 6px;
+  }
+
+  .header-right-actions .search-box-wrapper {
+    display: none;
+  }
+
+  .header-right-actions .user-profile-badge,
+  .icon-action-btn,
+  .menu-toggle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .menu-toggle {
+    order: initial;
+    flex: 0 0 40px;
+    margin-left: 0;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .menu-toggle::before {
+    content: "\2630";
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .site-nav[data-open="true"] {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 12px;
+    right: 12px;
+    z-index: 40;
+    padding: 10px;
+    border: 1px solid var(--color-border-default);
+    border-radius: 18px;
+    background: var(--color-bg-surface);
+    box-shadow: var(--shadow-lg);
+  }
+}
