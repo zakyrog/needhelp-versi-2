@@ -286,37 +286,143 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ============ DUA CARA BERPARTISIPASI ============ */}
+      <section className="container role-section" data-reveal>
+        <div className="section-header role-section-heading">
+          <div>
+            <p className="section-eyebrow">Satu komunitas, dua cara bergerak</p>
+            <h2>Pilih peranmu sesuai keadaan hari ini</h2>
+          </div>
+          <p className="section-supporting-copy">
+            Akun yang sama dapat dipakai untuk meminta bantuan maupun membantu
+            warga lain. Tidak ada peran yang mengikat.
+          </p>
+        </div>
+
+        <div className="role-grid">
+          <article className="role-card role-card-need">
+            <div className="role-card-icon" aria-hidden="true">
+              <SvgIcon name="person" size={26} strokeWidth={1.7} />
+            </div>
+            <p className="role-card-label">Saat kamu membutuhkan</p>
+            <h3>Ceritakan bantuan yang kamu cari</h3>
+            <p>
+              Jelaskan aktivitas, lokasi, waktu, dan bentuk kompensasi agar
+              warga yang tepat dapat mengajukan bantuan.
+            </p>
+            <ul className="role-benefits">
+              <li><SvgIcon name="check" size={16} /> Detail kebutuhan terstruktur</li>
+              <li><SvgIcon name="check" size={16} /> Pilih pengajuan yang paling cocok</li>
+              <li><SvgIcon name="check" size={16} /> Koordinasi langsung lewat chat</li>
+            </ul>
+            <Link href="/buat-postingan" className="role-card-link">
+              Buat postingan <SvgIcon name="arrowRight" size={16} />
+            </Link>
+          </article>
+
+          <article className="role-card role-card-offer">
+            <div className="role-card-icon" aria-hidden="true">
+              <SvgIcon name="hand" size={26} strokeWidth={1.7} />
+            </div>
+            <p className="role-card-label">Saat kamu punya waktu</p>
+            <h3>Temukan orang yang bisa kamu bantu</h3>
+            <p>
+              Saring kebutuhan berdasarkan kategori dan wilayah, lalu ajukan
+              bantuan dengan jadwal serta pesan yang jelas.
+            </p>
+            <ul className="role-benefits">
+              <li><SvgIcon name="check" size={16} /> Jelajahi kebutuhan aktif</li>
+              <li><SvgIcon name="check" size={16} /> Pantau status pengajuan</li>
+              <li><SvgIcon name="check" size={16} /> Bangun reputasi lewat ulasan</li>
+            </ul>
+            <Link href="/katalog?type=butuh" className="role-card-link">
+              Cari yang bisa dibantu <SvgIcon name="arrowRight" size={16} />
+            </Link>
+          </article>
+        </div>
+
+        <nav className="region-shortcuts" aria-label="Jelajahi bantuan berdasarkan wilayah">
+          <span><SvgIcon name="pin" size={17} /> Jelajahi wilayah:</span>
+          <Link href="/katalog?location=kota">Kota Yogyakarta</Link>
+          <Link href="/katalog?location=sleman">Sleman</Link>
+          <Link href="/katalog?location=bantul">Bantul</Link>
+          <Link href="/katalog?location=kulonprogo">Kulon Progo</Link>
+          <Link href="/katalog?location=gunungkidul">Gunungkidul</Link>
+        </nav>
+      </section>
+
       {/* ============ CARA KERJA ============ */}
       <section className="container how-section" data-reveal>
         <div className="section-header">
           <p className="section-eyebrow">Cara kerja</p>
-          <h2>Kebaikan dimulai dari tiga langkah sederhana</h2>
+          <h2>Dari postingan sampai bantuan selesai</h2>
         </div>
         <div className="how-grid">
           <div className="how-step">
-            <span className="how-num">1</span>
-            <h3>Ceritakan kebutuhanmu</h3>
+            <span className="how-num">01</span>
+            <h3>Posting atau jelajahi</h3>
             <p>
-              Minta bantuan fisik, teman ngopi, atau tawarkan keahlianmu dalam
-              satu postingan singkat.
+              Buat kebutuhan atau penawaranmu sendiri, atau cari postingan
+              aktif di wilayah DIY.
             </p>
           </div>
           <div className="how-step">
-            <span className="how-num">2</span>
-            <h3>Temukan orang yang tepat</h3>
+            <span className="how-num">02</span>
+            <h3>Ajukan &amp; pilih partner</h3>
             <p>
-              Komunitas di sekitar melihat postinganmu dan mengajukan diri
-              lewat chat.
+              Kirim pengajuan yang jelas. Pemilik postingan memilih partner
+              yang paling sesuai.
             </p>
           </div>
           <div className="how-step">
-            <span className="how-num">3</span>
-            <h3>Bantu &amp; bangun reputasi</h3>
+            <span className="how-num">03</span>
+            <h3>Sepakati detail di chat</h3>
             <p>
-              Bertemu langsung, selesaikan, lalu saling memberi ulasan untuk
-              komunitas yang lebih aman.
+              Pastikan waktu, titik temu, kegiatan, dan kompensasi dipahami
+              kedua pihak sebelum mulai.
             </p>
           </div>
+          <div className="how-step">
+            <span className="how-num">04</span>
+            <h3>Selesaikan &amp; beri ulasan</h3>
+            <p>
+              Tandai aktivitas selesai lalu bagikan pengalamanmu untuk membantu
+              komunitas memilih dengan lebih yakin.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ AMAN & TRANSPARAN ============ */}
+      <section className="container trust-section" data-reveal>
+        <div className="trust-panel trust-panel-primary">
+          <div className="trust-icon"><SvgIcon name="shield" size={28} /></div>
+          <p className="section-eyebrow">Bertemu dengan lebih tenang</p>
+          <h2>Kesepakatan jelas sebelum beraktivitas</h2>
+          <p>
+            NeedHelp membantu kedua pihak menyimpan konteks penting—postingan,
+            pengajuan, percakapan, dan status aktivitas—dalam satu alur.
+          </p>
+          <div className="trust-checks">
+            <span><SvgIcon name="chat" size={17} /> Sepakati detail lewat chat</span>
+            <span><SvgIcon name="pin" size={17} /> Pilih titik temu yang aman</span>
+            <span><SvgIcon name="clock" size={17} /> Beri kabar bila jadwal berubah</span>
+          </div>
+        </div>
+        <div className="trust-panel compensation-panel">
+          <p className="section-eyebrow">Kompensasi transparan</p>
+          <h3>Tentukan dari awal, bukan setelah bertemu</h3>
+          <p>Pilih bentuk apresiasi yang paling cocok untuk aktivitasmu.</p>
+          <div className="compensation-options" aria-label="Pilihan kompensasi NeedHelp">
+            <span>Tarif pasti</span>
+            <span>Nego di chat</span>
+            <span>Patungan</span>
+            <span>Traktir</span>
+            <span>Sukarela</span>
+          </div>
+          <Link href="/buat-postingan" className="text-link">
+            Atur detail postingan <SvgIcon name="arrowRight" size={15} />
+          </Link>
         </div>
       </section>
 
@@ -348,6 +454,37 @@ export default function HomePage() {
           ) : (
             <p className="empty-state">Belum ada postingan aktif saat ini.</p>
           )}
+        </div>
+      </section>
+
+      {/* ============ FAQ ============ */}
+      <section className="container home-faq-section" data-reveal>
+        <div className="home-faq-intro">
+          <p className="section-eyebrow">Sebelum mulai</p>
+          <h2>Hal yang sering ditanyakan</h2>
+          <p>
+            Jawaban singkat tentang cara memakai NeedHelp dengan nyaman dan
+            bertanggung jawab.
+          </p>
+          <Link href="/katalog" className="button button-outline">Lihat kebutuhan aktif</Link>
+        </div>
+        <div className="home-faq-list">
+          <details>
+            <summary>Apakah satu akun bisa meminta sekaligus membantu?</summary>
+            <p>Ya. Kamu dapat membuat postingan “Saya Butuh” maupun “Saya Bisa”, serta mengajukan bantuan pada postingan warga lain.</p>
+          </details>
+          <details>
+            <summary>Apakah setiap aktivitas harus berbayar?</summary>
+            <p>Tidak. Pemilik postingan dapat memilih tarif pasti, negosiasi di chat, patungan, traktir, atau bantuan sukarela.</p>
+          </details>
+          <details>
+            <summary>Bagaimana menentukan partner yang tepat?</summary>
+            <p>Baca pesan pengajuan, sepakati jadwal dan lokasi lewat chat, lalu pilih partner yang komunikasinya paling jelas dan sesuai kebutuhan.</p>
+          </details>
+          <details>
+            <summary>Apa yang perlu dilakukan sebelum bertemu?</summary>
+            <p>Pilih tempat yang aman, beri tahu orang terdekat, jangan membagikan data sensitif, dan pastikan semua detail aktivitas sudah disepakati.</p>
+          </details>
         </div>
       </section>
     </main>
