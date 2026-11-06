@@ -1,21 +1,26 @@
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: "standalone",
-  reactStrictMode: true,
-  experimental: {
-    cpus: 1,
-    workerThreads: false,
-  },
-  outputFileTracingRoot: __dirname,
+/** @param {string} phase @returns {import('next').NextConfig} */
+export default function nextConfig(phase) {
+  return {
+    // Pisahkan cache live preview dari build produksi. Menjalankan `next build`
+    // tidak lagi merusak hydration server `next dev` yang sedang aktif.
+    distDir: phase === PHASE_DEVELOPMENT_SERVER ? ".next-dev" : ".next",
+    output: "standalone",
+    reactStrictMode: true,
+    experimental: {
+      cpus: 1,
+      workerThreads: false,
+    },
+    outputFileTracingRoot: __dirname,
 
-  async redirects() {
-    return [
+    async redirects() {
+      return [
       { source: "/index.html", destination: "/", permanent: false },
       { source: "/katalog.html", destination: "/katalog", permanent: false },
       { source: "/login.html", destination: "/login", permanent: false },
@@ -48,8 +53,7 @@ const nextConfig = {
         permanent: false,
       },
       { source: "/formeror.html", destination: "/formeror", permanent: false },
-    ];
-  },
-};
-
-export default nextConfig;
+      ];
+    },
+  };
+}

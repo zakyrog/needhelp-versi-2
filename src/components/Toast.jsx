@@ -20,6 +20,7 @@ const MAX_TOASTS = 3;
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const timersRef = useRef(new Map());
+  const lastToastRef = useRef({ key: "", shownAt: 0 });
 
   const removeToast = useCallback((id) => {
     const timer = timersRef.current.get(id);
@@ -36,10 +37,23 @@ export function ToastProvider({ children }) {
     (message, type = "success", duration = 4000) => {
       if (!message) return;
 
-      const id = `${Date.now()}-${Math.random()}`;
       const safeType = ["success", "error", "info"].includes(type)
         ? type
         : "info";
+      const now = Date.now();
+      const key = `${safeType}:${message}`;
+
+      // React Strict Mode menjalankan effect dua kali pada mode development.
+      // Cegah pesan yang sama tampil ganda tanpa memblokir pesan berbeda.
+      if (
+        lastToastRef.current.key === key &&
+        now - lastToastRef.current.shownAt < 1000
+      ) {
+        return;
+      }
+      lastToastRef.current = { key, shownAt: now };
+
+      const id = `${now}-${Math.random()}`;
 
       setToasts((prev) => [
         ...prev,

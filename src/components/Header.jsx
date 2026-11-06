@@ -238,29 +238,33 @@ export function Header() {
               Katalog
             </Link>
           </li>
-          {/* Hanya tampilkan Aktivitas dan Pesan jika sudah login */}
-          {session && (
-            <>
-              <li>
-                <Link
-                  href="/aktivitas"
-                  aria-current={pathname === "/aktivitas" ? "page" : undefined}
-                  onClick={closeMenu}
-                >
-                  Aktivitas
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/chat"
-                  aria-current={pathname === "/chat" ? "page" : undefined}
-                  onClick={closeMenu}
-                >
-                  Pesan
-                </Link>
-              </li>
-            </>
-          )}
+          <li>
+            <Link
+              href="/buat-postingan"
+              aria-current={pathname === "/buat-postingan" ? "page" : undefined}
+              onClick={closeMenu}
+            >
+              Buat Postingan
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/aktivitas"
+              aria-current={pathname.startsWith("/aktivitas") ? "page" : undefined}
+              onClick={closeMenu}
+            >
+              Aktivitas
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/chat"
+              aria-current={pathname === "/chat" ? "page" : undefined}
+              onClick={closeMenu}
+            >
+              Pesan
+            </Link>
+          </li>
         </ul>
       </nav>
 

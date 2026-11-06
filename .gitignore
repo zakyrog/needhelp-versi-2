@@ -4,6 +4,8 @@ dist/
 
 # Next.js build output
 .next/
+.next-dev/
+.next-stale-preview/
 out/
 
 # Environment variables
