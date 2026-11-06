@@ -20,6 +20,7 @@ import {
 } from "../../lib/data.js";
 import { isSupabaseConfigured, getSupabase } from "../../lib/supabase.js";
 import { resolveAvatarSrc } from "../../lib/avatars.js";
+import { getSafeInternalPath } from "../../lib/navigation.js";
 import { EmptyState } from "../../components/EmptyState";
 import { useToast } from "../../components/Toast";
 import { SvgIcon } from "../../components/Icons.jsx";
@@ -30,7 +31,7 @@ function DetailPostContent() {
   const { showToast } = useToast();
 
   const id = searchParams.get("id");
-  const backUrl = searchParams.get("back") || "/katalog";
+  const backUrl = getSafeInternalPath(searchParams.get("back"), "/katalog");
 
   // Di mode Supabase, jangan inisialisasi dari getPost sync (cache bisa kosong).
   // Set loading=true agar tidak flash "tidak ditemukan" sebelum async fetch selesai.
@@ -127,7 +128,7 @@ function DetailPostContent() {
     return () => {
       isCancelled = true;
     };
-  }, [id]);
+  }, [id, supabaseMode]);
 
   const handleDelete = async () => {
     if (!post) return;

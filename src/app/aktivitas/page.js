@@ -123,7 +123,7 @@ function ActivityContent() {
     }
   };
 
-  const handleStart = async (activityId, postId) => {
+  const handleStart = async (activityId, _postId) => {
     if (!window.confirm("Mulai aktivitas ini sekarang? Status akan berubah menjadi 'Sedang Berjalan'.")) return;
 
     setStartingId(activityId);

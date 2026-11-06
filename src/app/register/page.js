@@ -7,7 +7,6 @@ import { signUp } from "../../lib/auth.js";
 import { isSupabaseConfigured } from "../../lib/supabase.js";
 import { validateRegistration } from "../../lib/validation.js";
 import { useToast } from "../../components/Toast";
-import { SvgIcon } from "../../components/Icons.jsx";
 
 function RegisterForm() {
   const router = useRouter();

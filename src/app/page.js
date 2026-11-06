@@ -51,7 +51,7 @@ export default function HomePage() {
       { value: stillLoading ? "…" : String(contributors), label: "Warga berbagi" },
       { value: "Gratis", label: "Untuk bergabung" },
     ];
-  }, [allActivePosts, posts, supabaseActive, loading]);
+  }, [allActivePosts, posts, loading]);
 
   useEffect(() => {
     let isCancelled = false;

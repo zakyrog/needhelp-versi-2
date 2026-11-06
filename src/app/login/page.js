@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { writeSession, signInWithPassword, CURRENT_USER } from "../../lib/auth.js";
 import { isSupabaseConfigured } from "../../lib/supabase.js";
 import { validateLogin } from "../../lib/validation.js";
+import { getSafeInternalPath } from "../../lib/navigation.js";
 import { Modal } from "../../components/Modal";
 import { useToast } from "../../components/Toast";
 import { SvgIcon } from "../../components/Icons.jsx";
@@ -15,7 +16,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const { showToast } = useToast();
 
-  const nextParam = searchParams.get("next") || "/";
+  const nextParam = getSafeInternalPath(searchParams.get("next"), "/");
   const supabaseMode = isSupabaseConfigured();
 
   const [email, setEmail] = useState(supabaseMode ? "" : "demo@needhelp.test");
@@ -89,11 +90,7 @@ function LoginForm() {
         showToast("Berhasil masuk ke akun demo!", "success");
       }
 
-      const destination =
-        nextParam.startsWith("/") && !nextParam.startsWith("//")
-          ? nextParam
-          : "/";
-      router.push(destination);
+      router.push(nextParam);
     } catch (err) {
       setErrors({
         general: err.message || "Gagal menyimpan sesi.",

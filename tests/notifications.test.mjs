@@ -50,6 +50,11 @@ test("mapNotificationRow membatasi tautan ke path internal", async () => {
   });
   assert.equal(external.href, "/notifikasi");
 
+  const protocolRelative = mapNotificationRow({
+    id: "2b", kind: "chat", title: "T", body: "B", href: "//evil.example/chat",
+  });
+  assert.equal(protocolRelative.href, "/notifikasi");
+
   const unknownKind = mapNotificationRow({ id: "3", kind: "hacked", title: "T", body: "B", href: "/x" });
   assert.equal(unknownKind.kind, "other");
 });

@@ -1,4 +1,5 @@
 import { getSupabase, isSupabaseConfigured } from "./supabase.js";
+import { getSafeInternalPath } from "./navigation.js";
 
 /**
  * Data layer notifikasi nyata (tabel public.notifications, migration 014).
@@ -92,7 +93,7 @@ export function formatNotificationTime(iso) {
  */
 export function mapNotificationRow(row) {
   const kind = NOTIFICATION_KINDS.includes(row.kind) ? row.kind : "other";
-  const href = typeof row.href === "string" && row.href.startsWith("/") ? row.href : "/notifikasi";
+  const href = getSafeInternalPath(row.href, "/notifikasi");
   return {
     id: String(row.id),
     kind,

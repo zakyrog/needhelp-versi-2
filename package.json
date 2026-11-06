@@ -8,9 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint src",
-    "test": "node --test tests/activity-status.test.mjs tests/activity-status-rpc.test.mjs tests/avatars.test.mjs tests/post-lookup.test.mjs tests/help-applications.test.mjs tests/popular-categories.test.mjs tests/rating-data.test.mjs tests/chat.test.mjs tests/chat-entry-links.test.mjs tests/delete-post-cleanup.test.mjs tests/notifications.test.mjs tests/realtime-subscription.test.mjs"
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/fraunces": "5.3.0",
+    "@fontsource-variable/plus-jakarta-sans": "5.3.0",
     "@fontsource/inter": "5.2.6",
     "@supabase/supabase-js": "^2.118.0",
     "next": "^15.5.28",
@@ -25,5 +27,8 @@
   },
   "engines": {
     "node": ">=22.12.0"
+  },
+  "overrides": {
+    "postcss": "8.5.32"
   }
 }

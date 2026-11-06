@@ -74,6 +74,9 @@
     0 24px 48px rgba(52, 39, 31, 0.12);
 
   /* ===== Tipografi ===== */
+  --font-inter: "Inter";
+  --font-jakarta: "Plus Jakarta Sans Variable";
+  --font-fraunces: "Fraunces Variable";
   --font-display: var(--font-fraunces), "Fraunces", Georgia, "Times New Roman",
     serif;
   --font-ui: var(--font-jakarta), "Plus Jakarta Sans", "Inter", system-ui,

@@ -1,4 +1,8 @@
-import { Inter, Plus_Jakarta_Sans, Fraunces } from "next/font/google";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource-variable/plus-jakarta-sans/wght.css";
+import "@fontsource-variable/fraunces/wght.css";
 import "../styles/tokens.css";
 import "../styles/base.css";
 import "../styles/ux-states.css";
@@ -9,29 +13,8 @@ import { Footer } from "../components/Footer";
 import { ToastProvider } from "../components/Toast";
 import { BodyClassManager } from "../components/BodyClassManager";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  display: "swap",
-  variable: "--font-inter",
-});
-
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-  variable: "--font-jakarta",
-});
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-  variable: "--font-fraunces",
-});
-
 export const metadata = {
-  metadataBase: new URL("https://needhelp-modul8.local"),
+  metadataBase: new URL("https://needhelpjogja.my.id"),
   title: {
     default: "NeedHelp - Platform Bantuan dan Teman Situasional",
     template: "%s - NeedHelp",
@@ -55,7 +38,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id" className={`${inter.variable} ${plusJakarta.variable} ${fraunces.variable}`}>
+    <html lang="id">
       <body>
         <BodyClassManager />
         <ToastProvider>
