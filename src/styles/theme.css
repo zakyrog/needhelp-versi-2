@@ -2718,6 +2718,22 @@ body:has(aside[aria-label="Penyaring Pencarian"])
   cursor: not-allowed;
 }
 
+.action-box .action-box-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border-default);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.action-box-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
 .action-box-danger {
   border-color: var(--color-danger);
   background: var(--color-danger-soft);

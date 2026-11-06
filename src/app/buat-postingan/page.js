@@ -59,10 +59,24 @@ export default function BuatPostinganPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+
+      // Penawaran jasa memakai pilihan imbalan yang relevan. Hindari membawa
+      // pilihan "patungan" atau "traktir" dari formulir kebutuhan.
+      if (
+        name === "nature" &&
+        value === "bisa" &&
+        ["patungan", "traktir"].includes(prev.compensation)
+      ) {
+        next.compensation = "tarif";
+      }
+
+      return next;
+    });
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
@@ -148,16 +162,33 @@ export default function BuatPostinganPage() {
     traktir: "Traktir",
     sukarela: "Sukarela",
   }[formData.compensation];
+  const isOffer = formData.nature === "bisa";
+  const compensationOptions = isOffer
+    ? [
+        ["tarif", "comp-fixed", "Tarif layanan", "Nominal jasa yang kamu tawarkan"],
+        ["nego", "comp-nego", "Bisa dinegosiasikan", "Sesuaikan dengan lingkup bantuan"],
+        ["sukarela", "comp-free", "Sukarela", "Tanpa kewajiban imbalan"],
+      ]
+    : [
+        ["tarif", "comp-fixed", "Tarif pasti", "Nominal jelas sejak awal"],
+        ["nego", "comp-nego", "Nego di chat", "Sepakati setelah berdiskusi"],
+        ["patungan", "comp-split", "Patungan", "Transport, tiket, atau biaya kegiatan"],
+        ["traktir", "comp-treat", "Traktir", "Makan, minum, atau bentuk sederhana"],
+        ["sukarela", "comp-free", "Sukarela", "Tanpa kewajiban imbalan"],
+      ];
 
   return (
     <main className="post-create-main">
       <section className="post-create-hero" aria-labelledby="post-create-title">
         <div>
           <span className="post-create-eyebrow">Buat postingan baru</span>
-          <h1 id="post-create-title">Ceritakan kebutuhanmu dengan jelas</h1>
+          <h1 id="post-create-title">
+            {isOffer ? "Tawarkan bantuanmu dengan meyakinkan" : "Ceritakan kebutuhanmu dengan jelas"}
+          </h1>
           <p>
-            Pasang kebutuhan atau tawarkan kemampuanmu. Detail aktivitas dan
-            bentuk apresiasi yang jelas membantu kamu menemukan partner yang tepat.
+            {isOffer
+              ? "Jelaskan keahlian, cakupan bantuan, ketersediaan, dan tarif agar orang lain mudah menilai kecocokannya."
+              : "Jelaskan aktivitas, waktu, lokasi umum, dan bentuk apresiasi agar kamu menemukan partner yang tepat."}
           </p>
         </div>
         <div className="post-create-promises" aria-label="Keunggulan postingan NeedHelp">
@@ -201,12 +232,15 @@ export default function BuatPostinganPage() {
           <section className="post-form-section" aria-labelledby="post-step-two">
             <div className="post-form-section-head">
               <span className="post-step-number">02</span>
-              <div><h2 id="post-step-two">Detail aktivitas</h2><p>Buat orang lain langsung memahami kebutuhanmu.</p></div>
+              <div>
+                <h2 id="post-step-two">{isOffer ? "Bantuan yang kamu tawarkan" : "Detail kebutuhan"}</h2>
+                <p>{isOffer ? "Tunjukkan kemampuan dan batas layananmu dengan jelas." : "Buat orang lain langsung memahami kebutuhanmu."}</p>
+              </div>
             </div>
             <div className="post-field-grid post-field-grid-split">
               <div className="post-field post-field-wide">
-                <label htmlFor="post-title">Judul postingan <span>Wajib</span></label>
-                <input type="text" id="post-title" name="title" value={formData.title} onChange={handleChange} disabled={submitting} placeholder="Contoh: Butuh bantuan pindahan kos di Pogung" maxLength={100} aria-invalid={Boolean(errors.title)} />
+                <label htmlFor="post-title">{isOffer ? "Nama bantuan atau layanan" : "Judul kebutuhan"} <span>Wajib</span></label>
+                <input type="text" id="post-title" name="title" value={formData.title} onChange={handleChange} disabled={submitting} placeholder={isOffer ? "Contoh: Siap bantu pindahan kos area Sleman" : "Contoh: Butuh bantuan pindahan kos di Pogung"} maxLength={100} aria-invalid={Boolean(errors.title)} />
                 <div className="post-field-meta"><small>Ringkas, spesifik, dan mudah dipindai.</small><small>{formData.title.length}/100</small></div>
                 {errors.title && <small className="field-error" role="alert">{errors.title}</small>}
               </div>
@@ -222,8 +256,8 @@ export default function BuatPostinganPage() {
                 {errors.category && <small className="field-error" role="alert">{errors.category}</small>}
               </div>
               <div className="post-field post-field-full">
-                <label htmlFor="post-description">Ceritakan detailnya <span>Wajib</span></label>
-                <textarea id="post-description" name="description" rows={6} value={formData.description} onChange={handleChange} disabled={submitting} maxLength={1000} placeholder="Jelaskan aktivitas, perkiraan durasi, hal yang perlu dibawa, dan ekspektasi hasilnya..." aria-invalid={Boolean(errors.description)} />
+                <label htmlFor="post-description">{isOffer ? "Jelaskan bantuanmu" : "Ceritakan kebutuhannya"} <span>Wajib</span></label>
+                <textarea id="post-description" name="description" rows={6} value={formData.description} onChange={handleChange} disabled={submitting} maxLength={1000} placeholder={isOffer ? "Jelaskan pengalaman atau kemampuanmu, cakupan bantuan, durasi, perlengkapan, dan hal yang tidak termasuk..." : "Jelaskan aktivitas, perkiraan durasi, hal yang perlu dibawa, dan ekspektasi hasilnya..."} aria-invalid={Boolean(errors.description)} />
                 <div className="post-field-meta"><small>Jangan cantumkan nomor telepon atau data pribadi.</small><small>{formData.description.length}/1000</small></div>
                 {errors.description && <small className="field-error" role="alert">{errors.description}</small>}
               </div>
@@ -233,21 +267,24 @@ export default function BuatPostinganPage() {
           <section className="post-form-section" aria-labelledby="post-step-three">
             <div className="post-form-section-head">
               <span className="post-step-number">03</span>
-              <div><h2 id="post-step-three">Waktu dan lokasi</h2><p>Berikan gambaran awal; detail sensitif dapat dibahas di chat.</p></div>
+              <div>
+                <h2 id="post-step-three">{isOffer ? "Ketersediaan dan area layanan" : "Waktu dan lokasi"}</h2>
+                <p>{isOffer ? "Tentukan jadwal awal dan wilayah yang dapat kamu jangkau." : "Berikan gambaran awal; detail sensitif dapat dibahas di chat."}</p>
+              </div>
             </div>
             <div className="post-field-grid post-field-grid-three">
               <div className="post-field">
-                <label htmlFor="post-date">Tanggal <span>Wajib</span></label>
+                <label htmlFor="post-date">{isOffer ? "Mulai tersedia" : "Tanggal"} <span>Wajib</span></label>
                 <input type="date" id="post-date" name="date" value={formData.date} onChange={handleChange} disabled={submitting} aria-invalid={Boolean(errors.date)} />
                 {errors.date && <small className="field-error" role="alert">{errors.date}</small>}
               </div>
               <div className="post-field">
-                <label htmlFor="post-time">Jam mulai <span>Wajib</span></label>
+                <label htmlFor="post-time">{isOffer ? "Jam layanan" : "Jam mulai"} <span>Wajib</span></label>
                 <input type="time" id="post-time" name="time" value={formData.time} onChange={handleChange} disabled={submitting} aria-invalid={Boolean(errors.time)} />
                 {errors.time && <small className="field-error" role="alert">{errors.time}</small>}
               </div>
               <div className="post-field">
-                <label htmlFor="post-region">Wilayah <span>Wajib</span></label>
+                <label htmlFor="post-region">{isOffer ? "Wilayah layanan" : "Wilayah"} <span>Wajib</span></label>
                 <select id="post-region" name="region" value={formData.region} onChange={handleChange} disabled={submitting} aria-invalid={Boolean(errors.region)}>
                   <option value="">Pilih wilayah</option>
                   <option value="sleman">Kabupaten Sleman</option>
@@ -261,14 +298,14 @@ export default function BuatPostinganPage() {
             </div>
             <div className="post-field-grid post-field-grid-split post-location-grid">
               <div className="post-field">
-                <label htmlFor="post-address">Area atau titik temu <span>Wajib</span></label>
+                <label htmlFor="post-address">{isOffer ? "Basis area layanan" : "Area atau titik temu"} <span>Wajib</span></label>
                 <input type="text" id="post-address" name="address" value={formData.address} onChange={handleChange} disabled={submitting} placeholder="Contoh: Pogung Baru, Mlati" aria-invalid={Boolean(errors.address)} />
                 <small>Gunakan area umum; alamat lengkap bisa dibagikan setelah cocok.</small>
                 {errors.address && <small className="field-error" role="alert">{errors.address}</small>}
               </div>
               <div className="post-field">
-                <label htmlFor="post-destination">Tujuan <em>Opsional</em></label>
-                <input type="text" id="post-destination" name="destination" value={formData.destination} onChange={handleChange} disabled={submitting} placeholder="Jika aktivitas berpindah lokasi" />
+                <label htmlFor="post-destination">{isOffer ? "Jangkauan tambahan" : "Tujuan"} <em>Opsional</em></label>
+                <input type="text" id="post-destination" name="destination" value={formData.destination} onChange={handleChange} disabled={submitting} placeholder={isOffer ? "Contoh: Bisa datang ke Kota Yogyakarta" : "Jika aktivitas berpindah lokasi"} />
                 {errors.destination && <small className="field-error" role="alert">{errors.destination}</small>}
               </div>
             </div>
@@ -277,16 +314,13 @@ export default function BuatPostinganPage() {
           <section className="post-form-section" aria-labelledby="post-step-four">
             <div className="post-form-section-head">
               <span className="post-step-number">04</span>
-              <div><h2 id="post-step-four">Bentuk apresiasi</h2><p>Tidak harus selalu uang—pilih kesepakatan yang paling masuk akal.</p></div>
+              <div>
+                <h2 id="post-step-four">{isOffer ? "Tarif atau imbalan" : "Bentuk apresiasi"}</h2>
+                <p>{isOffer ? "Sampaikan biaya secara transparan atau tandai bila dapat dinegosiasikan." : "Tidak harus selalu uang—pilih kesepakatan yang paling masuk akal."}</p>
+              </div>
             </div>
             <div className="post-comp-grid">
-              {[
-                ["tarif", "comp-fixed", "Tarif pasti", "Nominal jelas sejak awal"],
-                ["nego", "comp-nego", "Nego di chat", "Sepakati setelah berdiskusi"],
-                ["patungan", "comp-split", "Patungan", "Transport, tiket, atau biaya kegiatan"],
-                ["traktir", "comp-treat", "Traktir", "Makan, minum, atau bentuk sederhana"],
-                ["sukarela", "comp-free", "Sukarela", "Tanpa kewajiban imbalan"],
-              ].map(([value, id, title, copy]) => (
+              {compensationOptions.map(([value, id, title, copy]) => (
                 <label className={`post-comp-card ${formData.compensation === value ? "is-selected" : ""}`} htmlFor={id} key={value}>
                   <input type="radio" id={id} name="compensation" value={value} checked={formData.compensation === value} onChange={handleChange} disabled={submitting} />
                   <strong>{title}</strong><small>{copy}</small>
@@ -295,7 +329,7 @@ export default function BuatPostinganPage() {
             </div>
             {formData.compensation === "tarif" && (
               <div className="post-field post-amount-field">
-                <label htmlFor="comp-amount">Nominal tarif</label>
+                <label htmlFor="comp-amount">{isOffer ? "Tarif yang ditawarkan" : "Nominal tarif"}</label>
                 <div className="post-currency-input"><span>Rp</span><input type="number" id="comp-amount" name="amount" value={formData.amount} onChange={handleChange} disabled={submitting} min="1000" step="5000" placeholder="50000" aria-invalid={Boolean(errors.amount)} /></div>
                 {errors.amount && <small className="field-error" role="alert">{errors.amount}</small>}
               </div>
@@ -323,8 +357,8 @@ export default function BuatPostinganPage() {
         <aside className="post-create-aside" aria-label="Preview dan panduan postingan">
           <div className="post-preview-card">
             <div className="post-preview-label"><span>Preview postingan</span><i>{formData.nature === "butuh" ? "Butuh partner" : "Siap membantu"}</i></div>
-            <h2>{formData.title || "Judul postinganmu akan tampil di sini"}</h2>
-            <p>{formData.description || "Tulis detail yang cukup agar orang lain yakin untuk menghubungimu."}</p>
+            <h2>{formData.title || (isOffer ? "Nama bantuanmu akan tampil di sini" : "Judul kebutuhanmu akan tampil di sini")}</h2>
+            <p>{formData.description || (isOffer ? "Jelaskan kemampuan dan cakupan layanan agar orang lain yakin menghubungimu." : "Tulis detail yang cukup agar orang lain yakin untuk menawarkan bantuan.")}</p>
             <div className="post-preview-tags">
               <span>{categoryLabel || "Kategori"}</span><span>{regionLabel || "Wilayah"}</span><span>{compensationLabel || "Apresiasi"}</span>
             </div>

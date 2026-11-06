@@ -198,12 +198,12 @@ function DetailPostContent() {
   // Hanya "aktif" yang boleh menerima pengajuan baru atau memulai chat.
   const lifecycle = getPostLifecycleStatus(post);
   const isActive = lifecycle === "aktif";
-  const isOwner = Boolean(post.owned);
   // Pemilik pasti tidak boleh membuka formulir pengajuan; bila sesi belum
   // terverifikasi, mengklik link hanya akan diarahkan ke /login.
   const ownsThisPost = Boolean(
     supabaseMode && userId && post.authorId === userId,
   );
+  const isOwner = Boolean(post.owned || ownsThisPost);
   const applicationHref = ownsThisPost
     ? "/pengajuan"
     : supabaseMode && !userId
@@ -211,7 +211,6 @@ function DetailPostContent() {
       : `/formbantuan?id=${encodeURIComponent(post.id)}`;
   // Sudah punya pengajuan pending/accepted untuk post ini: tombol diganti status
   // non-aktif, tidak bisa diklik untuk mengajukan ulang. RPC 010 tetap menolak.
-  const hasActiveApplication = Boolean(myApplication);
   const closedMessage =
     lifecycle === "selesai"
       ? "Aktivitas bantuan untuk postingan ini sudah selesai. Pengajuan bantuan baru tidak lagi dibuka."
@@ -388,25 +387,30 @@ function DetailPostContent() {
                 : `Hubungi ${author.name} untuk menanyakan detail tawaran bantuan ini.`}
             </p>
 
-            <Link href={chatUrl} className="btn-bantu">
-              <SvgIcon name="chat" size={16} strokeWidth={2} />
-              {isNeed ? "Mulai Chat & Tawarkan" : "Mulai Chat & Tanyakan"}
-            </Link>
-
-            {hasActiveApplication ? (
+            {myApplication?.status === "accepted" ? (
+              <Link href={chatUrl} className="btn-bantu" data-chat-authorized>
+                <SvgIcon name="chat" size={16} strokeWidth={2} />
+                {isNeed ? "Chat dengan Pemilik Kebutuhan" : "Chat dengan Pemberi Bantuan"}
+              </Link>
+            ) : myApplication?.status === "pending" ? (
               <span
-                className="btn-chat app-status"
+                className="btn-bantu app-status"
                 aria-disabled="true"
                 data-application-exists={myApplication.status}
               >
-                <SvgIcon name="check" size={14} strokeWidth={3} /> Sudah Mengajukan
-                {myApplication.status === "accepted" ? " (Diterima)" : " (Menunggu)"}
+                <SvgIcon name="clock" size={16} strokeWidth={2} /> Pengajuan Sedang Ditinjau
               </span>
             ) : (
-              <Link href={applicationHref} className="btn-chat app-apply">
-                <SvgIcon name="clipboard" size={14} strokeWidth={2} /> Form Pengajuan Bantuan
+              <Link href={applicationHref} className="btn-bantu app-apply">
+                <SvgIcon name="clipboard" size={16} strokeWidth={2} />
+                {isNeed ? "Ajukan Penawaran Bantuan" : "Ajukan Permintaan Bantuan"}
               </Link>
             )}
+
+            <p className="action-box-note">
+              <SvgIcon name="shield" size={14} strokeWidth={2} />
+              Chat terbuka setelah pengajuan diterima. Nomor WhatsApp tetap privat.
+            </p>
           </section>
         )}
 

@@ -82,6 +82,24 @@ test("tidak ada tautan chat yang memakai id seed demo sebagai lawan bicara", () 
   );
 });
 
+test("halaman detail hanya membuka chat setelah pengajuan diterima", () => {
+  const detailPage = fs.readFileSync(
+    path.join(SRC, "app", "detail-postingan", "page.js"),
+    "utf8",
+  );
+
+  assert.match(
+    detailPage,
+    /myApplication\?\.status === "accepted"[\s\S]*?<Link href=\{chatUrl\}/,
+    "tautan chat detail harus berada di cabang status accepted",
+  );
+  assert.match(
+    detailPage,
+    /Chat terbuka setelah pengajuan diterima/,
+    "pengguna perlu diberi penjelasan kapan chat akan terbuka",
+  );
+});
+
 test("subscribeToPostChanges aman tanpa konfigurasi Supabase", async () => {
   const mod = await import("../src/lib/notification-realtime.js");
   assert.equal(typeof mod.subscribeToPostChanges, "function");
