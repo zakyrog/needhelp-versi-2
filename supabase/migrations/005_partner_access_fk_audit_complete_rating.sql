@@ -229,7 +229,7 @@ BEGIN
             WHEN 'c' THEN 'CASCADE'
             WHEN 'n' THEN 'SET NULL'
             WHEN 'd' THEN 'SET DEFAULT'
-            ELSE 'UNKNOWN (' || v_rec.confdeltype || ')'
+            ELSE 'UNKNOWN (' || v_rec.confdeltype::TEXT || ')'
         END;
 
         -- Cek apakah FK sudah sesuai target
@@ -323,7 +323,7 @@ BEGIN
             WHEN 'c' THEN 'CASCADE'
             WHEN 'n' THEN 'SET NULL'
             WHEN 'd' THEN 'SET DEFAULT'
-            ELSE 'UNKNOWN (' || v_rec.confdeltype || ')'
+            ELSE 'UNKNOWN (' || v_rec.confdeltype::TEXT || ')'
         END;
 
         IF v_rec.ref_schema = 'public'
