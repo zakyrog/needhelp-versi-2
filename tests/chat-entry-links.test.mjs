@@ -82,7 +82,7 @@ test("tidak ada tautan chat yang memakai id seed demo sebagai lawan bicara", () 
   );
 });
 
-test("halaman detail hanya membuka chat setelah pengajuan diterima", () => {
+test("halaman detail membuka chat setelah pengajuan dikirim", () => {
   const detailPage = fs.readFileSync(
     path.join(SRC, "app", "detail-postingan", "page.js"),
     "utf8",
@@ -90,12 +90,12 @@ test("halaman detail hanya membuka chat setelah pengajuan diterima", () => {
 
   assert.match(
     detailPage,
-    /myApplication\?\.status === "accepted"[\s\S]*?<Link href=\{chatUrl\}/,
-    "tautan chat detail harus berada di cabang status accepted",
+    /\["pending", "accepted"\]\.includes\(myApplication\?\.status\)[\s\S]*?<Link href=\{chatUrl\}/,
+    "tautan chat detail harus tersedia untuk pengajuan pending atau accepted",
   );
   assert.match(
     detailPage,
-    /Chat terbuka setelah pengajuan diterima/,
+    /Chat NeedHelp terbuka setelah pengajuan dikirim/,
     "pengguna perlu diberi penjelasan kapan chat akan terbuka",
   );
 });

@@ -52,23 +52,27 @@ async function stubSupabase({ user = { id: ME }, rpcImpl } = {}) {
     const builder = {
       select: () => builder,
       eq: () => builder,
+      in: () => builder,
       order: () => builder,
       then: (onFulfilled, onRejected) => {
         const rows =
           table === "posts"
             ? [
-                { id: POST_A, title: "Pindahan" },
-                { id: POST_B, title: "Ngopi" },
+                { id: POST_A, title: "Pindahan", author_id: ME },
+                { id: POST_B, title: "Ngopi", author_id: ME },
               ]
-            : [
+            : table === "activities"
+              ? [
                 {
                   id: ACT_A,
                   post_id: POST_A,
+                  user_id: ME,
                   status: "selesai",
                   partner_name: "Rina",
                   partner_id: null,
                 },
-              ];
+              ]
+              : [];
         return Promise.resolve({ data: rows, error: null }).then(onFulfilled, onRejected);
       },
     };

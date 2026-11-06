@@ -28,6 +28,10 @@ export default function BuatPostinganPage() {
     destination: "",
     compensation: "tarif",
     amount: "50000",
+    offerExperience: "cukup",
+    offerIncludes: "",
+    offerMode: "datang",
+    offerSchedule: "",
     terms: false,
   });
 
@@ -89,16 +93,32 @@ export default function BuatPostinganPage() {
     if (submitting) return;
 
     // Bersihkan nilai isian dengan .trim() sebelum validasi
+    const isOfferSubmission = formData.nature === "bisa";
+    const offerDescription = isOfferSubmission
+      ? [
+          sanitizeString(formData.description),
+          `Pengalaman: ${formData.offerExperience === "mahir" ? "Berpengalaman" : formData.offerExperience === "pemula" ? "Baru mulai" : "Cukup berpengalaman"}`,
+          `Yang termasuk: ${sanitizeString(formData.offerIncludes)}`,
+          `Cara bantuan: ${formData.offerMode === "online" ? "Online" : formData.offerMode === "fleksibel" ? "Online atau datang langsung" : "Datang langsung"}`,
+          `Ketersediaan rutin: ${sanitizeString(formData.offerSchedule)}`,
+        ].join("\n\n")
+      : formData.description.trim();
     const sanitizedData = {
       ...formData,
       title: sanitizeString(formData.title),
-      description: formData.description.trim(),
+      description: offerDescription,
       address: sanitizeString(formData.address),
       destination: sanitizeString(formData.destination),
       amount: String(formData.amount).trim(),
     };
 
     const validationErrors = validatePost(sanitizedData);
+    if (isOfferSubmission && sanitizeString(formData.offerIncludes).length < 10) {
+      validationErrors.offerIncludes = "Jelaskan apa saja yang termasuk dalam bantuanmu (minimal 10 karakter).";
+    }
+    if (isOfferSubmission && sanitizeString(formData.offerSchedule).length < 5) {
+      validationErrors.offerSchedule = "Tuliskan hari atau rentang waktu kamu biasanya tersedia.";
+    }
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -255,12 +275,30 @@ export default function BuatPostinganPage() {
                 </select>
                 {errors.category && <small className="field-error" role="alert">{errors.category}</small>}
               </div>
+              {isOffer && (
+                <div className="post-field">
+                  <label htmlFor="offer-experience">Tingkat pengalaman <span>Wajib</span></label>
+                  <select id="offer-experience" name="offerExperience" value={formData.offerExperience} onChange={handleChange} disabled={submitting}>
+                    <option value="pemula">Baru mulai — siap membantu tugas sederhana</option>
+                    <option value="cukup">Cukup berpengalaman — pernah mengerjakan</option>
+                    <option value="mahir">Berpengalaman — terbiasa menangani sendiri</option>
+                  </select>
+                </div>
+              )}
               <div className="post-field post-field-full">
                 <label htmlFor="post-description">{isOffer ? "Jelaskan bantuanmu" : "Ceritakan kebutuhannya"} <span>Wajib</span></label>
-                <textarea id="post-description" name="description" rows={6} value={formData.description} onChange={handleChange} disabled={submitting} maxLength={1000} placeholder={isOffer ? "Jelaskan pengalaman atau kemampuanmu, cakupan bantuan, durasi, perlengkapan, dan hal yang tidak termasuk..." : "Jelaskan aktivitas, perkiraan durasi, hal yang perlu dibawa, dan ekspektasi hasilnya..."} aria-invalid={Boolean(errors.description)} />
-                <div className="post-field-meta"><small>Jangan cantumkan nomor telepon atau data pribadi.</small><small>{formData.description.length}/1000</small></div>
+                <textarea id="post-description" name="description" rows={6} value={formData.description} onChange={handleChange} disabled={submitting} maxLength={isOffer ? 500 : 1000} placeholder={isOffer ? "Jelaskan jenis bantuan yang kamu kuasai, contoh pengalaman, serta hasil yang bisa diharapkan..." : "Jelaskan aktivitas, perkiraan durasi, hal yang perlu dibawa, dan ekspektasi hasilnya..."} aria-invalid={Boolean(errors.description)} />
+                <div className="post-field-meta"><small>Jangan cantumkan nomor telepon atau data pribadi.</small><small>{formData.description.length}/{isOffer ? 500 : 1000}</small></div>
                 {errors.description && <small className="field-error" role="alert">{errors.description}</small>}
               </div>
+              {isOffer && (
+                <div className="post-field post-field-full">
+                  <label htmlFor="offer-includes">Apa saja yang termasuk? <span>Wajib</span></label>
+                  <textarea id="offer-includes" name="offerIncludes" rows={4} value={formData.offerIncludes} onChange={handleChange} disabled={submitting} maxLength={500} placeholder="Contoh: Membantu angkat dan menata barang, membawa tali pengikat; tidak termasuk kendaraan angkut..." aria-invalid={Boolean(errors.offerIncludes)} />
+                  <div className="post-field-meta"><small>Tuliskan batas bantuan agar ekspektasi kedua pihak sama.</small><small>{formData.offerIncludes.length}/500</small></div>
+                  {errors.offerIncludes && <small className="field-error" role="alert">{errors.offerIncludes}</small>}
+                </div>
+              )}
             </div>
           </section>
 
@@ -273,6 +311,23 @@ export default function BuatPostinganPage() {
               </div>
             </div>
             <div className="post-field-grid post-field-grid-three">
+              {isOffer && (
+                <div className="post-field">
+                  <label htmlFor="offer-mode">Cara membantu <span>Wajib</span></label>
+                  <select id="offer-mode" name="offerMode" value={formData.offerMode} onChange={handleChange} disabled={submitting}>
+                    <option value="datang">Datang langsung</option>
+                    <option value="online">Online</option>
+                    <option value="fleksibel">Online atau datang langsung</option>
+                  </select>
+                </div>
+              )}
+              {isOffer && (
+                <div className="post-field">
+                  <label htmlFor="offer-schedule">Jadwal biasanya tersedia <span>Wajib</span></label>
+                  <input type="text" id="offer-schedule" name="offerSchedule" value={formData.offerSchedule} onChange={handleChange} disabled={submitting} placeholder="Contoh: Senin–Sabtu setelah 17.00" aria-invalid={Boolean(errors.offerSchedule)} />
+                  {errors.offerSchedule && <small className="field-error" role="alert">{errors.offerSchedule}</small>}
+                </div>
+              )}
               <div className="post-field">
                 <label htmlFor="post-date">{isOffer ? "Mulai tersedia" : "Tanggal"} <span>Wajib</span></label>
                 <input type="date" id="post-date" name="date" value={formData.date} onChange={handleChange} disabled={submitting} aria-invalid={Boolean(errors.date)} />

@@ -253,7 +253,6 @@ export function validateRating(stars, comment) {
 export function validateHelpProposal(values) {
   const errors = {};
   const name = (values?.helper_name || "").trim();
-  const phone = (values?.helper_whatsapp || "").trim();
   const message = (values?.helper_message || "").trim();
   const time = (values?.helper_time || "").trim();
 
@@ -263,14 +262,6 @@ export function validateHelpProposal(values) {
     errors.helper_name = "Nama wajib diisi minimal 3 karakter.";
   } else if (name.length > 60) {
     errors.helper_name = "Nama maksimal 60 karakter.";
-  }
-
-  const cleanPhone = phone.replace(/[-\s()]/g, "");
-  if (!phone) {
-    errors.helper_whatsapp = "Nomor kontak WhatsApp wajib diisi.";
-  } else if (!/^(?:\+62|62|08)[0-9]{8,13}$/.test(cleanPhone)) {
-    errors.helper_whatsapp =
-      "Format nomor kontak tidak valid (contoh: 081234567890 atau +6281234567890).";
   }
 
   if (!message) {

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   fetchMyHelpApplications,
@@ -196,8 +197,15 @@ function PengajuanContent() {
     <main>
       <header className="page-header-section">
         <h1>Pengajuan Bantuan</h1>
-        <p>Kelola pengajuan bantuan yang masuk untuk postingan Anda.</p>
+        <p>Pantau keputusan, lanjutkan percakapan, dan masuk ke aktivitas yang sudah disepakati.</p>
       </header>
+
+      <section className="application-flow" aria-label="Alur bantuan NeedHelp">
+        <div className="application-flow-step is-current"><span>1</span><strong>Ajukan</strong><small>Kirim konteks dan jadwal.</small></div>
+        <div className="application-flow-step"><span>2</span><strong>Chat</strong><small>Diskusi tetap di NeedHelp.</small></div>
+        <div className="application-flow-step"><span>3</span><strong>Sepakat</strong><small>Pemilik menerima pengajuan.</small></div>
+        <div className="application-flow-step"><span>4</span><strong>Selesai &amp; ulasan</strong><small>Kedua pihak saling menilai.</small></div>
+      </section>
 
       {/* Filter chips */}
       <div className="activity-filter-chips">
@@ -267,9 +275,6 @@ function PengajuanContent() {
                   <strong>Pesan:</strong> {app.message || "(Tidak ada pesan)"}
                 </p>
                 <p style={{ margin: "0 0 8px 0", fontSize: "14px" }}>
-                  <strong>Kontak:</strong> {app.contactInfo || "-"}
-                </p>
-                <p style={{ margin: "0 0 8px 0", fontSize: "14px" }}>
                   <strong>Waktu Tersedia:</strong> {app.availableTime || "-"}
                 </p>
                 {app.extraNote && (
@@ -281,7 +286,13 @@ function PengajuanContent() {
 
               {/* Action buttons - hanya untuk status pending */}
               {app.status === "pending" && (
-                <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+                <div className="application-card-actions">
+                  <Link
+                    href={`/chat?user=${encodeURIComponent(app.applicantId)}&post=${encodeURIComponent(app.postId)}`}
+                    className="btn-detail-outline"
+                  >
+                    <SvgIcon name="chat" size={14} strokeWidth={2} /> Chat Dulu
+                  </Link>
                   <button
                     type="button"
                     className="btn-detail-outline"
@@ -311,9 +322,13 @@ function PengajuanContent() {
 
               {/* Info untuk status lain */}
               {app.status === "accepted" && (
-                <p style={{ marginTop: "12px", fontSize: "14px", color: "var(--color-success, #38a169)", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                  <SvgIcon name="check" size={14} strokeWidth={3} /> Pengajuan ini telah diterima. Aktivitas sedang berlangsung.
-                </p>
+                <div className="application-accepted-actions">
+                  <p><SvgIcon name="check" size={14} strokeWidth={3} /> Pengajuan diterima. Aktivitas sedang berlangsung.</p>
+                  <Link href={`/chat?user=${encodeURIComponent(app.applicantId)}&post=${encodeURIComponent(app.postId)}`} className="btn-detail-outline">
+                    <SvgIcon name="chat" size={14} strokeWidth={2} /> Buka Chat
+                  </Link>
+                  <Link href="/aktivitas" className="btn-detail-outline">Lihat Aktivitas</Link>
+                </div>
               )}
               {app.status === "rejected" && (
                 <p style={{ marginTop: "12px", fontSize: "14px", color: "var(--color-text-muted)", display: "inline-flex", alignItems: "center", gap: "6px" }}>
@@ -371,7 +386,7 @@ function PengajuanContent() {
                   </div>
                   <div className="article-info">
                     <div className="article-title-row">
-                      <h3>Postingan #{app.postId}</h3>
+                      <h3>{app.postTitle || `Postingan #${app.postId}`}</h3>
                     </div>
                     <p style={{ fontSize: "14px", color: "var(--color-text-muted)" }}>
                       Dikirim {app.createdAt ? new Date(app.createdAt).toLocaleDateString("id-ID") : "-"}
@@ -390,9 +405,29 @@ function PengajuanContent() {
                     <strong>Pesan:</strong> {app.message || "(Tidak ada pesan)"}
                   </p>
                   <p style={{ margin: 0, fontSize: "14px" }}>
-                    <strong>Kontak:</strong> {app.contactInfo || "-"}
+                    <strong>Status:</strong>{" "}
+                    {app.status === "pending"
+                      ? "Menunggu keputusan — chat NeedHelp sudah bisa digunakan."
+                      : app.status === "accepted"
+                        ? "Diterima — aktivitas sedang berjalan."
+                        : app.status === "rejected"
+                          ? "Pengajuan ditolak."
+                          : "Pengajuan ditarik."}
                   </p>
                 </div>
+                {["pending", "accepted"].includes(app.status) && app.postAuthorId && (
+                  <div className="application-card-actions">
+                    <Link
+                      href={`/chat?user=${encodeURIComponent(app.postAuthorId)}&post=${encodeURIComponent(app.postId)}`}
+                      className="btn-detail-outline"
+                    >
+                      <SvgIcon name="chat" size={14} strokeWidth={2} /> Chat di NeedHelp
+                    </Link>
+                    {app.status === "accepted" && (
+                      <Link href="/aktivitas" className="btn-detail-outline">Buka Aktivitas</Link>
+                    )}
+                  </div>
+                )}
               </article>
             ))}
           </div>

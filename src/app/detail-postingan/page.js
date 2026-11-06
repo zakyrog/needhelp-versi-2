@@ -209,8 +209,9 @@ function DetailPostContent() {
     : supabaseMode && !userId
       ? `/login?next=${encodeURIComponent(`/formbantuan?id=${post.id}`)}`
       : `/formbantuan?id=${encodeURIComponent(post.id)}`;
-  // Sudah punya pengajuan pending/accepted untuk post ini: tombol diganti status
-  // non-aktif, tidak bisa diklik untuk mengajukan ulang. RPC 010 tetap menolak.
+  // Sudah punya pengajuan pending/accepted untuk post ini: pengguna tidak bisa
+  // mengajukan ulang, tetapi chat NeedHelp sudah boleh dibuka. RPC 010 tetap
+  // menjadi pengaman utama terhadap pengajuan ganda.
   const closedMessage =
     lifecycle === "selesai"
       ? "Aktivitas bantuan untuk postingan ini sudah selesai. Pengajuan bantuan baru tidak lagi dibuka."
@@ -387,19 +388,15 @@ function DetailPostContent() {
                 : `Hubungi ${author.name} untuk menanyakan detail tawaran bantuan ini.`}
             </p>
 
-            {myApplication?.status === "accepted" ? (
+            {["pending", "accepted"].includes(myApplication?.status) ? (
               <Link href={chatUrl} className="btn-bantu" data-chat-authorized>
                 <SvgIcon name="chat" size={16} strokeWidth={2} />
-                {isNeed ? "Chat dengan Pemilik Kebutuhan" : "Chat dengan Pemberi Bantuan"}
+                {myApplication?.status === "accepted"
+                  ? isNeed
+                    ? "Chat dengan Pemilik Kebutuhan"
+                    : "Chat dengan Pemberi Bantuan"
+                  : "Chat di NeedHelp (Menunggu Keputusan)"}
               </Link>
-            ) : myApplication?.status === "pending" ? (
-              <span
-                className="btn-bantu app-status"
-                aria-disabled="true"
-                data-application-exists={myApplication.status}
-              >
-                <SvgIcon name="clock" size={16} strokeWidth={2} /> Pengajuan Sedang Ditinjau
-              </span>
             ) : (
               <Link href={applicationHref} className="btn-bantu app-apply">
                 <SvgIcon name="clipboard" size={16} strokeWidth={2} />
@@ -409,7 +406,8 @@ function DetailPostContent() {
 
             <p className="action-box-note">
               <SvgIcon name="shield" size={14} strokeWidth={2} />
-              Chat terbuka setelah pengajuan diterima. Nomor WhatsApp tetap privat.
+              Chat NeedHelp terbuka setelah pengajuan dikirim. WhatsApp tetap
+              privat sampai kedua pihak menyetujui berbagi kontak.
             </p>
           </section>
         )}

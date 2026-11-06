@@ -1309,27 +1309,33 @@ export function cancelActivity(activityId) {
  * @param {Object} row - Baris dari Supabase query
  * @returns {Object} Objek aktivitas dalam format aplikasi
  */
-function mapSupabaseActivityToApp(row) {
+function mapSupabaseActivityToApp(row, currentUserId, profileNames = new Map(), reviews = {}) {
   if (!row) return null;
+  const isOwner = String(row.user_id) === String(currentUserId);
+  const counterpartId = isOwner ? row.partner_id : row.user_id;
+  const legacyReview = isOwner && row.review_rating
+    ? { rating: row.review_rating, comment: row.review_comment || "" }
+    : null;
   return {
     id: String(row.id),
     postId: String(row.post_id),
     status: row.status,
-    partner: row.partner_name || "",
-    partnerId: row.partner_id ? String(row.partner_id) : null,
+    partner: isOwner
+      ? row.partner_name || profileNames.get(String(counterpartId)) || ""
+      : profileNames.get(String(counterpartId)) || "Pemilik postingan",
+    partnerId: counterpartId ? String(counterpartId) : null,
     note: row.note || "",
-    review: row.review_rating
-      ? { rating: row.review_rating, comment: row.review_comment || "" }
-      : null,
-    owned: true,
+    review: reviews.mine || legacyReview,
+    reviewReceived: reviews.received || null,
+    owned: isOwner,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
 
 /**
- * Mengambil semua aktivitas milik user yang sedang login dari Supabase.
- * Aktivitas diturunkan dari postingan user + override status di tabel activities.
+ * Mengambil aktivitas yang melibatkan user sebagai pemilik postingan maupun
+ * partner yang pengajuannya diterima.
  *
  * Alur:
  * 1. Ambil semua postingan milik user dari tabel posts
@@ -1356,10 +1362,12 @@ export async function fetchActivities() {
       throw err;
     }
 
-    // Ambil semua postingan milik user
-    const { data: posts, error: postsError } = await supabase
+    // Postingan milik user tetap menghasilkan kartu "menunggu" walau belum ada
+    // baris activities. Aktivitas sebagai partner datang dari policy
+    // activities_select_as_partner (migration 005).
+    const { data: ownedPosts, error: postsError } = await supabase
       .from("posts")
-      .select("id, title")
+      .select("id, title, author_id")
       .eq("author_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -1367,11 +1375,10 @@ export async function fetchActivities() {
       throw new Error(`Gagal mengambil postingan: ${postsError.message}`);
     }
 
-    // Ambil semua activity records milik user
+    // RLS mengembalikan baris saat user adalah owner ATAU partner.
     const { data: activityRecords, error: actError } = await supabase
       .from("activities")
-      .select("*")
-      .eq("user_id", user.id);
+      .select("*");
 
     if (actError) {
       throw new Error(`Gagal mengambil aktivitas: ${actError.message}`);
@@ -1381,7 +1388,7 @@ export async function fetchActivities() {
     // selesai/batal tanpa data aktivitas basi (lihat injectActivityStatus).
     // Baris activities milik user ini memang terbaca lewat RLS (activities_select_own),
     // jadi status here sama dengan hasil RPC get_post_activity_status.
-    if (posts) {
+    if (ownedPosts) {
       const freshStatusByPost = new Map(
         (activityRecords || []).map((act) => [String(act.post_id), act.status]),
       );
@@ -1401,31 +1408,86 @@ export async function fetchActivities() {
       });
     }
 
-    // Index activity records by post_id untuk lookup cepat
-    const activityByPostId = new Map();
-    for (const act of activityRecords || []) {
-      activityByPostId.set(act.post_id, act);
+    const activityPostIds = [...new Set((activityRecords || []).map((act) => act.post_id))];
+    const ownedPostIds = new Set((ownedPosts || []).map((post) => String(post.id)));
+    const partnerPostIds = activityPostIds.filter((id) => !ownedPostIds.has(String(id)));
+    let partnerPosts = [];
+    if (partnerPostIds.length > 0) {
+      const { data: rows, error: partnerPostsError } = await supabase
+        .from("posts")
+        .select("id, title, author_id")
+        .in("id", partnerPostIds);
+      if (partnerPostsError) {
+        throw new Error(`Gagal mengambil postingan aktivitas partner: ${partnerPostsError.message}`);
+      }
+      partnerPosts = rows || [];
     }
 
-    // Gabungkan: setiap post → aktivitas (dari record atau default)
-    const activities = (posts || []).map((post) => {
-      const record = activityByPostId.get(post.id);
-      if (record) {
-        return mapSupabaseActivityToApp(record);
+    const profileIds = [...new Set((activityRecords || []).flatMap((act) => [act.user_id, act.partner_id]).filter(Boolean))];
+    const profileNames = new Map();
+    if (profileIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name")
+        .in("id", profileIds);
+      for (const profile of profiles || []) {
+        profileNames.set(String(profile.id), profile.name || "Pengguna");
       }
-      // Default: aktivitas menunggu tanpa record di tabel activities
-      return {
-        id: post.id, // Gunakan post ID sebagai activity ID sementara
+    }
+
+    const reviewsByActivity = new Map();
+    if ((activityRecords || []).length > 0) {
+      const { data: reviewRows, error: reviewsError } = await supabase
+        .from("activity_reviews")
+        .select("activity_id, reviewer_id, reviewee_id, rating, comment")
+        .in("activity_id", (activityRecords || []).map((act) => act.id));
+      // Sebelum migration 016 dijalankan, pertahankan kompatibilitas dengan
+      // kolom review_* lama tanpa menggagalkan seluruh halaman Aktivitas.
+      if (!reviewsError) {
+        for (const row of reviewRows || []) {
+          const key = String(row.activity_id);
+          const current = reviewsByActivity.get(key) || {};
+          const review = { rating: row.rating, comment: row.comment || "" };
+          if (String(row.reviewer_id) === String(user.id)) current.mine = review;
+          if (String(row.reviewee_id) === String(user.id)) current.received = review;
+          reviewsByActivity.set(key, current);
+        }
+      }
+    }
+
+    const postById = new Map(
+      [...(ownedPosts || []), ...partnerPosts].map((post) => [String(post.id), post]),
+    );
+    const activityByPostId = new Map(
+      (activityRecords || []).map((act) => [String(act.post_id), act]),
+    );
+
+    const activities = (activityRecords || []).map((record) => ({
+      ...mapSupabaseActivityToApp(
+        record,
+        user.id,
+        profileNames,
+        reviewsByActivity.get(String(record.id)) || {},
+      ),
+      postTitle: postById.get(String(record.post_id))?.title || "Aktivitas NeedHelp",
+    }));
+
+    for (const post of ownedPosts || []) {
+      if (activityByPostId.has(String(post.id))) continue;
+      activities.push({
+        id: post.id,
         postId: String(post.id),
+        postTitle: post.title,
         status: "menunggu",
         partner: "",
         partnerId: null,
         note: "Postingan aktif di katalog publik dan menunggu calon partner.",
         review: null,
+        reviewReceived: null,
         owned: true,
-        _defaultActivity: true, // Penanda bahwa ini belum punya record di DB
-      };
-    });
+        _defaultActivity: true,
+      });
+    }
 
     return activities;
   } catch (err) {
@@ -2089,15 +2151,19 @@ export async function fetchMyHelpApplications() {
   // mendapat tombol Terima/Tolak. Proteksi akhirnya tetap RPC 004.
   const postIds = [...new Set((data || []).map((row) => row.post_id))];
   const postAuthorMap = new Map();
+  const postTitleMap = new Map();
   if (postIds.length > 0) {
     const { data: posts, error: postsError } = await supabase
       .from("posts")
-      .select("id, author_id")
+      .select("id, author_id, title")
       .in("id", postIds);
     if (postsError) {
       throw new Error(`Gagal mengambil pemilik postingan: ${postsError.message}`);
     }
-    for (const p of posts || []) postAuthorMap.set(String(p.id), String(p.author_id));
+    for (const p of posts || []) {
+      postAuthorMap.set(String(p.id), String(p.author_id));
+      postTitleMap.set(String(p.id), p.title || "Postingan NeedHelp");
+    }
   }
   const isPostOwner = (row) => postAuthorMap.get(String(row.post_id)) === String(user.id);
 
@@ -2130,6 +2196,8 @@ export async function fetchMyHelpApplications() {
   const mapRow = (row) => ({
     id: String(row.id),
     postId: String(row.post_id),
+    postTitle: postTitleMap.get(String(row.post_id)) || "Postingan NeedHelp",
+    postAuthorId: postAuthorMap.get(String(row.post_id)) || null,
     applicantId: String(row.applicant_id),
     applicantName: profilesMap[row.applicant_id]?.name || "Pengguna",
     applicantAvatar: profilesMap[row.applicant_id]?.avatar_url || "/assets/images/avatar-user.svg",

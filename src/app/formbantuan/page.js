@@ -110,7 +110,6 @@ function FormBantuanContent() {
   // bila pengguna tidak mengetik apa pun.
   const [formData, setFormData] = useState({
     helper_name: "",
-    helper_whatsapp: "",
     helper_message: "",
     helper_time: "",
     helper_note: "",
@@ -160,8 +159,8 @@ function FormBantuanContent() {
 
   // Isi nama dari profil pengguna yang login (profiles.name, sumber yang sama
   // dengan halaman /profil). Hanya diisi bila field masih kosong agar ketikan
-  // pengguna tidak tertimpa. profiles tidak punya kolom WhatsApp, jadi nomor
-  // WhatsApp tetap diisi manual; form menampilkan petunjuk bila profil kosong.
+  // pengguna tidak tertimpa. Kontak pribadi tidak diminta pada tahap pengajuan;
+  // WhatsApp dibagikan kemudian dari chat dengan persetujuan kedua pihak.
   const [profileName, setProfileName] = useState(null);
   useEffect(() => {
     if (!supabaseMode || !verifiedUserId) return;
@@ -280,7 +279,7 @@ function FormBantuanContent() {
         // sehingga tidak ada notifikasi ganda dari frontend.
         await submitHelpApplication(postId, {
           message: formData.helper_message.trim(),
-          contactInfo: formData.helper_whatsapp.trim(),
+          contactInfo: "",
           availableTime: formData.helper_time.trim(),
           extraNote: formData.helper_note.trim(),
         });
@@ -293,7 +292,7 @@ function FormBantuanContent() {
         if (post && post.authorId) {
           saveMessage(
             post.authorId,
-            `[Penawaran Bantuan Baru] ${formData.helper_message.trim()} (Kontak: ${formData.helper_whatsapp.trim()}, Waktu: ${formData.helper_time.trim()})`,
+            `[Penawaran Bantuan Baru] ${formData.helper_message.trim()} (Waktu: ${formData.helper_time.trim()})`,
             post.title,
           );
         }
@@ -494,23 +493,6 @@ function FormBantuanContent() {
             </FormField>
 
             <FormField
-              id="helper-whatsapp"
-              label="Nomor WhatsApp"
-              required
-              error={errors.helper_whatsapp}
-            >
-              <input
-                type="text"
-                id="helper-whatsapp"
-                name="helper_whatsapp"
-                value={formData.helper_whatsapp}
-                onChange={handleChange}
-                placeholder="0812-xxxx-xxxx"
-                aria-invalid={Boolean(errors.helper_whatsapp)}
-              />
-            </FormField>
-
-            <FormField
               id="helper-message"
               label={`Pesan untuk ${author.name}`}
               required
@@ -590,8 +572,10 @@ function FormBantuanContent() {
               <p>
                 <strong>Nama Relawan:</strong> {formData.helper_name}
               </p>
-              <p>
-                <strong>Kontak WhatsApp:</strong> {formData.helper_whatsapp}
+              <p className="proposal-privacy-note">
+                <SvgIcon name="shield" size={15} strokeWidth={2} />
+                Nomor WhatsApp tidak dikirim bersama pengajuan. Kamu tetap bisa
+                chat di NeedHelp; kontak baru terbuka bila kedua pihak setuju.
               </p>
               <p>
                 <strong>Waktu Tersedia:</strong> {formData.helper_time}
@@ -655,15 +639,25 @@ function FormBantuanContent() {
               <>
                 <p className="success-desc">
                   {author.name} akan menerima tawaran bantuanmu dan notifikasi
-                  pengajuan baru. Kamu dapat melanjutkan obrolan langsung untuk
-                  menyepakati titik kumpul.
+                  pengajuan baru. Chat NeedHelp sudah dapat dipakai untuk bertanya
+                  dan menyepakati detail. WhatsApp bersifat opsional dan baru
+                  terbuka jika kalian berdua menyetujuinya di ruang chat.
                 </p>
+                <ol className="proposal-next-steps">
+                  <li><strong>Pengajuan terkirim</strong><span>Status awal: menunggu keputusan.</span></li>
+                  <li><strong>Mulai chat di NeedHelp</strong><span>Kamu tetap dapat mengirim pesan selama menunggu.</span></li>
+                  <li><strong>Pengajuan diterima</strong><span>Aktivitas muncul untuk kedua pihak.</span></li>
+                  <li><strong>Selesai &amp; beri ulasan</strong><span>Kedua pihak dapat saling menilai setelah aktivitas selesai.</span></li>
+                </ol>
                 <div className="success-actions">
                   <Link
                     href={`/chat?user=${encodeURIComponent(post?.authorId || "")}&post=${encodeURIComponent(postId)}`}
                     className="btn-primary-custom"
                   >
-                    Buka Obrolan dengan {author.name}
+                    Chat di NeedHelp dengan {author.name}
+                  </Link>
+                  <Link href="/pengajuan" className="btn-secondary-custom">
+                    Lihat Status Pengajuan
                   </Link>
                   <Link href="/katalog" className="btn-secondary-custom">
                     Kembali ke Katalog

@@ -183,7 +183,7 @@ function RatingContent() {
         setUnrateableReason("unauthenticated");
         return;
       }
-      if (isNotOwnerError(err?.message)) {
+      if (isNotOwnerError(err?.message) || /bukan peserta/i.test(err?.message || "")) {
         setBusinessBlock("not-owner");
         return;
       }
@@ -404,7 +404,7 @@ function RatingContent() {
 
       {businessBlock === "not-owner" && (
         <p className="error-banner" role="alert">
-          Hanya pemilik postingan yang dapat memberi penilaian kepada partner.
+          Hanya dua pihak yang terlibat dalam aktivitas ini yang dapat memberi ulasan.
         </p>
       )}
 
@@ -566,7 +566,7 @@ function RatingContent() {
             className="button button-primary"
             disabled={submitting || Boolean(businessBlock)}
           >
-            {submitting ? "Menyimpan..." : "Kirim Penilaian & Selesaikan Bantuan"}
+            {submitting ? "Menyimpan..." : "Kirim Ulasan"}
           </button>
           <Link href="/aktivitas" className="button button-outline">
             Kembali ke Aktivitas

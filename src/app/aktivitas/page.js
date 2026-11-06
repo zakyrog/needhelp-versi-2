@@ -342,7 +342,12 @@ function ActivityContent() {
                   )}
                   {activity.review && (
                     <p className="activity-card-review">
-                      Ulasan: <em>&ldquo;{activity.review.comment}&rdquo;</em> ({activity.review.rating}.0)
+                      Ulasan yang kamu berikan: <em>&ldquo;{activity.review.comment}&rdquo;</em> ({activity.review.rating}.0)
+                    </p>
+                  )}
+                  {activity.reviewReceived && (
+                    <p className="activity-card-review activity-card-review-received">
+                      Ulasan yang kamu terima: <em>&ldquo;{activity.reviewReceived.comment}&rdquo;</em> ({activity.reviewReceived.rating}.0)
                     </p>
                   )}
                 </div>
@@ -372,14 +377,16 @@ function ActivityContent() {
                           <SvgIcon name="chat" size={15} strokeWidth={2} /> Obrolan
                         </Link>
                       )}
-                      <button
-                        type="button"
-                        className="btn-detail-outline activity-cta-action"
-                        onClick={() => handleComplete(activity.id, activity.postId)}
-                        disabled={completingId === activity.id}
-                      >
-                        {completingId === activity.id ? "Menyelesaikan..." : "Selesaikan"}
-                      </button>
+                      {activity.owned && (
+                        <button
+                          type="button"
+                          className="btn-detail-outline activity-cta-action"
+                          onClick={() => handleComplete(activity.id, activity.postId)}
+                          disabled={completingId === activity.id}
+                        >
+                          {completingId === activity.id ? "Menyelesaikan..." : "Tandai Selesai"}
+                        </button>
+                      )}
                     </>
                   )}
 
@@ -408,7 +415,7 @@ function ActivityContent() {
                       )}
                       {/* Aktivitas sintetis (belum punya baris di tabel activities) tidak bisa
                           dibatalkan: RPC cancel_activity hanya mengubah record database. */}
-                      {!activity._defaultActivity && (
+                      {activity.owned && !activity._defaultActivity && (
                         <button
                           type="button"
                           className="btn-detail-outline activity-cta-danger"

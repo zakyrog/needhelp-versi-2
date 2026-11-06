@@ -20,6 +20,12 @@ import { readSession } from "../../lib/auth.js";
 import { isSupabaseConfigured } from "../../lib/supabase.js";
 import { useToast } from "../../components/Toast";
 import { SvgIcon } from "../../components/Icons.jsx";
+import {
+  fetchWhatsAppShareStatus,
+  shareWhatsAppContact,
+  revokeWhatsAppContact,
+  buildWhatsAppUrl,
+} from "../../lib/contact-sharing.js";
 
 const LIFECYCLE_LABEL = {
   aktif: "Masih aktif",
@@ -102,6 +108,10 @@ function ChatContent() {
   const [searchContact, setSearchContact] = useState("");
   const [lifecycle, setLifecycle] = useState(null);
   const [realtimeStatus, setRealtimeStatus] = useState("connecting");
+  const [contactShare, setContactShare] = useState(null);
+  const [contactShareError, setContactShareError] = useState(null);
+  const [whatsAppInput, setWhatsAppInput] = useState("");
+  const [sharingContact, setSharingContact] = useState(false);
   const myUserId = readSession()?.id ? String(readSession().id) : null;
 
   const messagesEndRef = useRef(null);
@@ -238,6 +248,29 @@ function ChatContent() {
     }
     loadThread(activeId);
   }, [activeId, loadThread]);
+
+  // WhatsApp adalah jalur tambahan, bukan pengganti chat. Nomor pasangan hanya
+  // dikembalikan server setelah kedua peserta menyetujui berbagi kontak.
+  useEffect(() => {
+    let cancelled = false;
+    setContactShare(null);
+    setContactShareError(null);
+    setWhatsAppInput("");
+    if (!activeId) return undefined;
+
+    fetchWhatsAppShareStatus(activeId)
+      .then((status) => {
+        if (!cancelled) setContactShare(status);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setContactShareError(err.message || "Gagal memeriksa persetujuan WhatsApp.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId]);
 
   // --- Status postingan untuk kartu Topik Percakapan ------------------------
   // `lifecycleTick` dipakai untuk memicu muat ulang setelah event realtime.
@@ -414,6 +447,43 @@ function ChatContent() {
       }
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleShareWhatsApp = async (e) => {
+    e.preventDefault();
+    if (!activeId || sharingContact) return;
+    setSharingContact(true);
+    setContactShareError(null);
+    try {
+      const status = await shareWhatsAppContact(activeId, whatsAppInput);
+      setContactShare(status);
+      setWhatsAppInput("");
+      showToast(
+        status?.partnerConsented
+          ? "Kedua pihak sudah setuju. Tautan WhatsApp kini tersedia."
+          : "Persetujuan Anda tersimpan. Menunggu persetujuan lawan bicara.",
+        "success",
+      );
+    } catch (err) {
+      setContactShareError(err.message || "Gagal membagikan nomor WhatsApp.");
+    } finally {
+      setSharingContact(false);
+    }
+  };
+
+  const handleRevokeWhatsApp = async () => {
+    if (!activeId || sharingContact) return;
+    setSharingContact(true);
+    setContactShareError(null);
+    try {
+      const status = await revokeWhatsAppContact(activeId);
+      setContactShare(status);
+      showToast("Persetujuan berbagi WhatsApp dibatalkan.", "info");
+    } catch (err) {
+      setContactShareError(err.message || "Gagal membatalkan persetujuan WhatsApp.");
+    } finally {
+      setSharingContact(false);
     }
   };
 
@@ -720,6 +790,72 @@ function ChatContent() {
                 </span>
               )}
             </div>
+
+            <section className="trusted-contact-card" aria-labelledby="trusted-contact-title">
+              <div className="trusted-contact-copy">
+                <span className="trusted-contact-icon" aria-hidden="true">
+                  <SvgIcon name="shield" size={18} strokeWidth={2} />
+                </span>
+                <div>
+                  <h3 id="trusted-contact-title">Lanjut ke WhatsApp bila sama-sama percaya</h3>
+                  <p>
+                    Chat NeedHelp tetap dapat digunakan. Nomor WhatsApp baru
+                    terlihat setelah kamu dan {activeConversation.otherName} sama-sama setuju.
+                  </p>
+                </div>
+              </div>
+
+              {contactShareError ? (
+                <p className="trusted-contact-error" role="alert">
+                  {contactShareError}
+                  {contactShareError.includes("migration 016") && (
+                    <span> Chat dalam aplikasi tetap bisa digunakan seperti biasa.</span>
+                  )}
+                </p>
+              ) : contactShare?.partnerPhone ? (
+                <div className="trusted-contact-ready">
+                  <span><SvgIcon name="check" size={15} strokeWidth={2.5} /> Kedua pihak sudah menyetujui</span>
+                  <a
+                    href={buildWhatsAppUrl(contactShare.partnerPhone)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="button button-primary"
+                  >
+                    Buka WhatsApp
+                  </a>
+                  <button type="button" className="trusted-contact-revoke" onClick={handleRevokeWhatsApp} disabled={sharingContact}>
+                    Batalkan persetujuan saya
+                  </button>
+                </div>
+              ) : contactShare?.myConsented ? (
+                <div className="trusted-contact-waiting">
+                  <span><SvgIcon name="clock" size={15} strokeWidth={2} /> Menunggu persetujuan {activeConversation.otherName}</span>
+                  <button type="button" className="trusted-contact-revoke" onClick={handleRevokeWhatsApp} disabled={sharingContact}>
+                    Batalkan
+                  </button>
+                </div>
+              ) : contactShare ? (
+                <form className="trusted-contact-form" onSubmit={handleShareWhatsApp}>
+                  <label htmlFor="trusted-whatsapp">Nomor WhatsApp kamu</label>
+                  <div>
+                    <input
+                      id="trusted-whatsapp"
+                      type="tel"
+                      value={whatsAppInput}
+                      onChange={(e) => setWhatsAppInput(e.target.value)}
+                      placeholder="0812 3456 7890"
+                      autoComplete="tel"
+                      disabled={sharingContact}
+                    />
+                    <button type="submit" className="button button-outline" disabled={sharingContact || !whatsAppInput.trim()}>
+                      {sharingContact ? "Menyimpan..." : "Saya Setuju Berbagi"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <p className="trusted-contact-loading" role="status">Memeriksa persetujuan kontak...</p>
+              )}
+            </section>
 
             {/* Area Riwayat Pesan */}
             <div className="messages-container">

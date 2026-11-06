@@ -299,7 +299,7 @@ export default function DetailAktivitasPage() {
 
           {activity.review && (
             <section className="activity-detail-card">
-              <h2>Ulasan</h2>
+              <h2>Ulasan yang kamu berikan</h2>
               <div className="activity-detail-review">
                 <span className="activity-detail-stars" aria-hidden="true">
                   {"★".repeat(Math.max(0, Math.min(5, Number(activity.review.rating) || 0)))}
@@ -311,6 +311,25 @@ export default function DetailAktivitasPage() {
               {activity.review.comment && (
                 <p className="activity-detail-review-comment">
                   &ldquo;{activity.review.comment}&rdquo;
+                </p>
+              )}
+            </section>
+          )}
+
+          {activity.reviewReceived && (
+            <section className="activity-detail-card">
+              <h2>Ulasan yang kamu terima</h2>
+              <div className="activity-detail-review">
+                <span className="activity-detail-stars" aria-hidden="true">
+                  {"★".repeat(Math.max(0, Math.min(5, Number(activity.reviewReceived.rating) || 0)))}
+                </span>
+                <span className="activity-detail-review-rating">
+                  {activity.reviewReceived.rating}.0 / 5.0
+                </span>
+              </div>
+              {activity.reviewReceived.comment && (
+                <p className="activity-detail-review-comment">
+                  &ldquo;{activity.reviewReceived.comment}&rdquo;
                 </p>
               )}
             </section>

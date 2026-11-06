@@ -2734,6 +2734,186 @@ body:has(aside[aria-label="Penyaring Pencarian"])
   margin-top: 1px;
 }
 
+/* Alur pengajuan yang mudah dipindai */
+.application-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 1120px;
+  margin: 0 auto 24px;
+  padding: 0 20px;
+}
+
+.application-flow-step {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  column-gap: 10px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.application-flow-step > span {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-primary-softest);
+  color: var(--color-action-primary);
+  font-weight: 800;
+}
+
+.application-flow-step strong { font-size: 13px; }
+.application-flow-step small { color: var(--color-text-muted); line-height: 1.35; }
+
+.application-card-actions,
+.application-accepted-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.application-accepted-actions p {
+  flex-basis: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--color-success);
+  font-size: 14px;
+}
+
+.proposal-privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-softest);
+}
+
+.proposal-next-steps {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 20px auto;
+  max-width: 560px;
+  list-style: none;
+  counter-reset: proposal-step;
+  text-align: left;
+}
+
+.proposal-next-steps li {
+  counter-increment: proposal-step;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  column-gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.proposal-next-steps li::before {
+  content: counter(proposal-step);
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-primary-softest);
+  color: var(--color-action-primary);
+  font-weight: 800;
+}
+
+.proposal-next-steps span { color: var(--color-text-muted); font-size: 13px; }
+
+/* Persetujuan kontak di ruang chat */
+.trusted-contact-card {
+  margin: 0 20px 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-primary-softest) 64%, white);
+}
+
+.trusted-contact-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.trusted-contact-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-bg-surface);
+  color: var(--color-action-primary);
+}
+
+.trusted-contact-copy h3 { margin: 0 0 3px; font-size: 14px; }
+.trusted-contact-copy p { margin: 0; color: var(--color-text-muted); font-size: 12px; line-height: 1.5; }
+
+.trusted-contact-form,
+.trusted-contact-ready,
+.trusted-contact-waiting,
+.trusted-contact-error,
+.trusted-contact-loading {
+  margin: 12px 0 0 44px;
+}
+
+.trusted-contact-form label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; }
+.trusted-contact-form > div { display: flex; gap: 8px; }
+.trusted-contact-form input {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+}
+
+.trusted-contact-ready,
+.trusted-contact-waiting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.trusted-contact-ready > span,
+.trusted-contact-waiting > span { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.trusted-contact-revoke { border: 0; background: transparent; color: var(--color-text-muted); text-decoration: underline; cursor: pointer; }
+.trusted-contact-error { color: var(--color-error); font-size: 12px; }
+.trusted-contact-loading { color: var(--color-text-muted); font-size: 12px; }
+
+@media (max-width: 760px) {
+  .application-flow { grid-template-columns: 1fr 1fr; }
+  .trusted-contact-card { margin-inline: 12px; }
+  .trusted-contact-form,
+  .trusted-contact-ready,
+  .trusted-contact-waiting,
+  .trusted-contact-error,
+  .trusted-contact-loading { margin-left: 0; }
+  .trusted-contact-form > div { flex-direction: column; }
+}
+
+@media (max-width: 440px) {
+  .application-flow { grid-template-columns: 1fr; }
+}
+
 .action-box-danger {
   border-color: var(--color-danger);
   background: var(--color-danger-soft);
