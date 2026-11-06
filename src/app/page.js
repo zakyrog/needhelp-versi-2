@@ -49,7 +49,7 @@ export default function HomePage() {
     return [
       { value: stillLoading ? "…" : String(active.length), label: "Permintaan aktif" },
       { value: stillLoading ? "…" : String(contributors), label: "Warga berbagi" },
-      { value: "Gratis", label: "Untuk bergabung" },
+      { value: "Gratis", label: "Daftar tanpa biaya" },
     ];
   }, [allActivePosts, posts, loading]);
 
@@ -129,17 +129,17 @@ export default function HomePage() {
             Butuh bantuan atau teman <em>hari ini</em>&#8201;?
           </h1>
           <p className="hero-lede">
-            Temukan orang di sekitar yang siap membantu, atau tawarkan
-            keahlian dan waktumu kepada mereka yang membutuhkan — bukan lewat
-            aplikasi, tapi lewat koneksi antar manusia.
+            Temukan partner aktivitas di sekitarmu untuk bantuan praktis,
+            pendampingan, atau teman berkegiatan. Sepakati waktu, detail, dan
+            bentuk apresiasi sejak awal.
           </p>
           <div className="hero-actions">
             <Link href="/buat-postingan" className="button button-primary">
-              Buat Permintaan
+              Pasang Kebutuhan
               <SvgIcon name="arrowRight" size={16} strokeWidth={2} />
             </Link>
             <Link href="/katalog" className="button button-outline">
-              Tawarkan Bantuan
+              Lihat Peluang Sekitar
             </Link>
           </div>
           <div className="hero-proof" aria-label="Statistik komunitas">

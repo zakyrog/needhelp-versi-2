@@ -128,394 +128,218 @@ export default function BuatPostinganPage() {
     }
   };
 
+  const categoryLabel = {
+    ditemani: "Ditemani",
+    bantuan: "Bantuan fisik",
+    pendampingan: "Pendampingan",
+    explore: "Explore",
+  }[formData.category];
+  const regionLabel = {
+    sleman: "Sleman",
+    kota: "Kota Yogyakarta",
+    bantul: "Bantul",
+    kulonprogo: "Kulon Progo",
+    gunungkidul: "Gunungkidul",
+  }[formData.region];
+  const compensationLabel = {
+    tarif: `Tarif Rp${Number(formData.amount || 0).toLocaleString("id-ID")}`,
+    nego: "Nego di chat",
+    patungan: "Patungan",
+    traktir: "Traktir",
+    sukarela: "Sukarela",
+  }[formData.compensation];
+
   return (
-    <main>
-      <header>
-        <h1>Formulir Pasang Postingan Baru</h1>
-        <p>
-          Publikasikan permintaan bantuan yang kamu butuhkan atau tawarkan waktu
-          dan keahlianmu kepada orang sekitar.
-        </p>
-      </header>
-
-      {errors.general && (
-        <div
-          className="error-banner"
-          role="alert"
-          style={{
-            background: "#fee2e2",
-            border: "1px solid #ef4444",
-            color: "#b91c1c",
-            padding: "12px 16px",
-            borderRadius: "8px",
-            marginBottom: "20px",
-            fontWeight: "500",
-          }}
-        >
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <SvgIcon name="warning" size={16} strokeWidth={2} /> {errors.general}
-          </span>
+    <main className="post-create-main">
+      <section className="post-create-hero" aria-labelledby="post-create-title">
+        <div>
+          <span className="post-create-eyebrow">Buat postingan baru</span>
+          <h1 id="post-create-title">Ceritakan kebutuhanmu dengan jelas</h1>
+          <p>
+            Pasang kebutuhan atau tawarkan kemampuanmu. Detail aktivitas dan
+            bentuk apresiasi yang jelas membantu kamu menemukan partner yang tepat.
+          </p>
         </div>
-      )}
+        <div className="post-create-promises" aria-label="Keunggulan postingan NeedHelp">
+          <span><SvgIcon name="check" size={16} /> Detail terstruktur</span>
+          <span><SvgIcon name="check" size={16} /> Apresiasi transparan</span>
+          <span><SvgIcon name="check" size={16} /> Kontak tidak dipublikasikan</span>
+        </div>
+      </section>
 
-      <form onSubmit={handleSubmit} noValidate>
-        {/* 1. Jenis Pintu Masuk Postingan */}
-        <fieldset>
-          <legend>1. Pilih Jenis Pintu Masuk Postingan</legend>
-          <p>
-            <input
-              type="radio"
-              id="post-need"
-              name="nature"
-              value="butuh"
-              checked={formData.nature === "butuh"}
-              onChange={handleChange}
-              disabled={submitting}
-            />
-            <label htmlFor="post-need">
-              <strong>Saya Butuh</strong> &mdash; Saya membutuhkan bantuan atau
-              teman pendamping
-            </label>
-          </p>
-          <p>
-            <input
-              type="radio"
-              id="post-can"
-              name="nature"
-              value="bisa"
-              checked={formData.nature === "bisa"}
-              onChange={handleChange}
-              disabled={submitting}
-            />
-            <label htmlFor="post-can">
-              <strong>Saya Bisa</strong> &mdash; Saya memiliki keahlian atau
-              waktu luang untuk membantu
-            </label>
-          </p>
-          {errors.nature && (
-            <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-              {errors.nature}
-            </small>
-          )}
-        </fieldset>
-
-        {/* 2. Informasi Utama Kebutuhan */}
-        <fieldset>
-          <legend>2. Detail Informasi Aktivitas</legend>
-          <p>
-            <label htmlFor="post-title">Judul Singkat Postingan (5-100 karakter):</label>
-            <input
-              type="text"
-              id="post-title"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              disabled={submitting}
-              placeholder="Contoh: Butuh teman ngopi santai di Palagan"
-              maxLength={100}
-              aria-invalid={Boolean(errors.title)}
-            />
-            {errors.title && (
-              <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-                {errors.title}
-              </small>
-            )}
-          </p>
-
-          <p>
-            <label htmlFor="post-category">Kategori Aktivitas:</label>
-            <select
-              id="post-category"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              disabled={submitting}
-              aria-invalid={Boolean(errors.category)}
-            >
-              <option value="">-- Pilih Kategori --</option>
-              <option value="ditemani">
-                Ditemani (Gym, Ngopi, Nonton, Mancing)
-              </option>
-              <option value="bantuan">
-                Bantuan Fisik (Pindahan kos, Angkat barang, Bersih-bersih)
-              </option>
-              <option value="pendampingan">
-                Pendampingan (Diskusi tugas, Beli barang elektronik)
-              </option>
-              <option value="explore">
-                Explore (Wisata, Kuliner murah, Hidden gem)
-              </option>
-            </select>
-            {errors.category && (
-              <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-                {errors.category}
-              </small>
-            )}
-          </p>
-
-          <p>
-            <label htmlFor="post-description">
-              Deskripsi Lengkap Kebutuhan / Keahlian (minimal 20 karakter):
-            </label>
-            <textarea
-              id="post-description"
-              name="description"
-              rows={5}
-              value={formData.description}
-              onChange={handleChange}
-              disabled={submitting}
-              placeholder="Jelaskan kebutuhan secara spesifik, barang yang dibawa, titik temu, atau keahlian yang kamu tawarkan..."
-              aria-invalid={Boolean(errors.description)}
-            />
-            {errors.description && (
-              <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-                {errors.description}
-              </small>
-            )}
-          </p>
-        </fieldset>
-
-        {/* 3. Waktu & Lokasi Pelaksanaan */}
-        <fieldset>
-          <legend>3. Waktu &amp; Lokasi Pelaksanaan</legend>
-          <p>
-            <label htmlFor="post-date">Tanggal Rencana (tidak boleh masa lalu):</label>
-            <input
-              type="date"
-              id="post-date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              disabled={submitting}
-              aria-invalid={Boolean(errors.date)}
-            />
-            {errors.date && (
-              <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-                {errors.date}
-              </small>
-            )}
-          </p>
-
-          <p>
-            <label htmlFor="post-time">Waktu / Jam Mulai:</label>
-            <input
-              type="time"
-              id="post-time"
-              name="time"
-              value={formData.time}
-              onChange={handleChange}
-              disabled={submitting}
-              aria-invalid={Boolean(errors.time)}
-            />
-            {errors.time && (
-              <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-                {errors.time}
-              </small>
-            )}
-          </p>
-
-          <p>
-            <label htmlFor="post-region">Wilayah Kabupaten/Kota di Yogyakarta:</label>
-            <select
-              id="post-region"
-              name="region"
-              value={formData.region}
-              onChange={handleChange}
-              disabled={submitting}
-              aria-invalid={Boolean(errors.region)}
-            >
-              <option value="">-- Pilih Wilayah --</option>
-              <option value="sleman">Kabupaten Sleman</option>
-              <option value="kota">Kota Yogyakarta</option>
-              <option value="bantul">Kabupaten Bantul</option>
-              <option value="kulonprogo">Kabupaten Kulon Progo</option>
-              <option value="gunungkidul">Kabupaten Gunungkidul</option>
-            </select>
-            {errors.region && (
-              <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-                {errors.region}
-              </small>
-            )}
-          </p>
-
-          <p>
-            <label htmlFor="post-address">Titik Lokasi / Tempat Bertemu (minimal 5 karakter):</label>
-            <input
-              type="text"
-              id="post-address"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              disabled={submitting}
-              placeholder="Contoh: Cosan Palagan / Pogung Baru Blok D"
-              aria-invalid={Boolean(errors.address)}
-            />
-            {errors.address && (
-              <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-                {errors.address}
-              </small>
-            )}
-          </p>
-
-          <p>
-            <label htmlFor="post-destination">Titik Tujuan (Opsional):</label>
-            <input
-              type="text"
-              id="post-destination"
-              name="destination"
-              value={formData.destination}
-              onChange={handleChange}
-              disabled={submitting}
-              placeholder="Contoh: Kos Baru di Jl. Palagan KM 8"
-            />
-            {errors.destination && (
-              <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-                {errors.destination}
-              </small>
-            )}
-          </p>
-        </fieldset>
-
-        {/* 4. Sistem Kompensasi / Imbalan */}
-        <fieldset>
-          <legend>4. Sistem Kompensasi / Imbalan</legend>
-          <p>
-            <input
-              type="radio"
-              id="comp-fixed"
-              name="compensation"
-              value="tarif"
-              checked={formData.compensation === "tarif"}
-              onChange={handleChange}
-              disabled={submitting}
-            />
-            <label htmlFor="comp-fixed">Tarif Pasti (Nominal Uang)</label>
-          </p>
-
-          {formData.compensation === "tarif" && (
-            <p>
-              <label htmlFor="comp-amount">Nominal Tarif (Rp &gt; 0):</label>
-              <input
-                type="number"
-                id="comp-amount"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                disabled={submitting}
-                min="1000"
-                step="5000"
-                placeholder="50000"
-                aria-invalid={Boolean(errors.amount)}
-              />
-              {errors.amount && (
-                <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-                  {errors.amount}
-                </small>
-              )}
-            </p>
+      <div className="post-create-layout">
+        <form className="post-create-form" onSubmit={handleSubmit} noValidate>
+          {errors.general && (
+            <div className="post-create-error" role="alert">
+              <SvgIcon name="warning" size={18} strokeWidth={2} /> {errors.general}
+            </div>
           )}
 
-          <p>
-            <input
-              type="radio"
-              id="comp-nego"
-              name="compensation"
-              value="nego"
-              checked={formData.compensation === "nego"}
-              onChange={handleChange}
-              disabled={submitting}
-            />
-            <label htmlFor="comp-nego">Nego di Chat (Saling berdiskusi)</label>
-          </p>
-          <p>
-            <input
-              type="radio"
-              id="comp-split"
-              name="compensation"
-              value="patungan"
-              checked={formData.compensation === "patungan"}
-              onChange={handleChange}
-              disabled={submitting}
-            />
-            <label htmlFor="comp-split">
-              Patungan Transport / Tiket (Split-Bill)
-            </label>
-          </p>
-          <p>
-            <input
-              type="radio"
-              id="comp-treat"
-              name="compensation"
-              value="traktir"
-              checked={formData.compensation === "traktir"}
-              onChange={handleChange}
-              disabled={submitting}
-            />
-            <label htmlFor="comp-treat">Traktir Makan / Minum Ngopi</label>
-          </p>
-          <p>
-            <input
-              type="radio"
-              id="comp-free"
-              name="compensation"
-              value="sukarela"
-              checked={formData.compensation === "sukarela"}
-              onChange={handleChange}
-              disabled={submitting}
-            />
-            <label htmlFor="comp-free">Sukarela / Gratis</label>
-          </p>
-          {errors.compensation && (
-            <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-              {errors.compensation}
-            </small>
-          )}
-        </fieldset>
+          <section className="post-form-section" aria-labelledby="post-step-one">
+            <div className="post-form-section-head">
+              <span className="post-step-number">01</span>
+              <div>
+                <h2 id="post-step-one">Apa yang ingin kamu lakukan?</h2>
+                <p>Pilih sisi postingan yang paling sesuai saat ini.</p>
+              </div>
+            </div>
+            <div className="post-choice-grid">
+              <label className={`post-choice-card ${formData.nature === "butuh" ? "is-selected" : ""}`} htmlFor="post-need">
+                <input type="radio" id="post-need" name="nature" value="butuh" checked={formData.nature === "butuh"} onChange={handleChange} disabled={submitting} />
+                <span className="post-choice-mark" aria-hidden="true" />
+                <span><strong>Saya butuh partner</strong><small>Untuk bantuan praktis, pendampingan, atau teman aktivitas.</small></span>
+              </label>
+              <label className={`post-choice-card ${formData.nature === "bisa" ? "is-selected" : ""}`} htmlFor="post-can">
+                <input type="radio" id="post-can" name="nature" value="bisa" checked={formData.nature === "bisa"} onChange={handleChange} disabled={submitting} />
+                <span className="post-choice-mark" aria-hidden="true" />
+                <span><strong>Saya menawarkan bantuan</strong><small>Bagikan waktu, tenaga, atau keahlian kepada warga sekitar.</small></span>
+              </label>
+            </div>
+            {errors.nature && <small className="field-error" role="alert">{errors.nature}</small>}
+          </section>
 
-        {/* 5. Persetujuan Komunitas */}
-        <fieldset>
-          <legend>5. Persetujuan Komunitas</legend>
-          <p>
-            <input
-              type="checkbox"
-              id="terms-agree"
-              name="terms"
-              checked={formData.terms}
-              onChange={handleChange}
-              disabled={submitting}
-              aria-invalid={Boolean(errors.terms)}
-            />
-            <label htmlFor="terms-agree">
-              Saya menyetujui pedoman keamanan dan kesopanan komunitas NeedHelp
-            </label>
-          </p>
-          {errors.terms && (
-            <small className="field-error" role="alert" style={{ color: "#ef4444", display: "block" }}>
-              {errors.terms}
-            </small>
-          )}
+          <section className="post-form-section" aria-labelledby="post-step-two">
+            <div className="post-form-section-head">
+              <span className="post-step-number">02</span>
+              <div><h2 id="post-step-two">Detail aktivitas</h2><p>Buat orang lain langsung memahami kebutuhanmu.</p></div>
+            </div>
+            <div className="post-field-grid post-field-grid-split">
+              <div className="post-field post-field-wide">
+                <label htmlFor="post-title">Judul postingan <span>Wajib</span></label>
+                <input type="text" id="post-title" name="title" value={formData.title} onChange={handleChange} disabled={submitting} placeholder="Contoh: Butuh bantuan pindahan kos di Pogung" maxLength={100} aria-invalid={Boolean(errors.title)} />
+                <div className="post-field-meta"><small>Ringkas, spesifik, dan mudah dipindai.</small><small>{formData.title.length}/100</small></div>
+                {errors.title && <small className="field-error" role="alert">{errors.title}</small>}
+              </div>
+              <div className="post-field">
+                <label htmlFor="post-category">Kategori <span>Wajib</span></label>
+                <select id="post-category" name="category" value={formData.category} onChange={handleChange} disabled={submitting} aria-invalid={Boolean(errors.category)}>
+                  <option value="">Pilih kategori</option>
+                  <option value="ditemani">Ditemani — gym, ngopi, nonton</option>
+                  <option value="bantuan">Bantuan fisik — pindahan, angkat barang</option>
+                  <option value="pendampingan">Pendampingan — diskusi, memilih barang</option>
+                  <option value="explore">Explore — wisata, kuliner, hidden gem</option>
+                </select>
+                {errors.category && <small className="field-error" role="alert">{errors.category}</small>}
+              </div>
+              <div className="post-field post-field-full">
+                <label htmlFor="post-description">Ceritakan detailnya <span>Wajib</span></label>
+                <textarea id="post-description" name="description" rows={6} value={formData.description} onChange={handleChange} disabled={submitting} maxLength={1000} placeholder="Jelaskan aktivitas, perkiraan durasi, hal yang perlu dibawa, dan ekspektasi hasilnya..." aria-invalid={Boolean(errors.description)} />
+                <div className="post-field-meta"><small>Jangan cantumkan nomor telepon atau data pribadi.</small><small>{formData.description.length}/1000</small></div>
+                {errors.description && <small className="field-error" role="alert">{errors.description}</small>}
+              </div>
+            </div>
+          </section>
 
-          <p
-            style={{
-              marginTop: "24px",
-              display: "flex",
-              gap: "12px",
-              alignItems: "center",
-            }}
-          >
-            <button
-              type="submit"
-              className="button button-primary"
-              disabled={submitting}
-            >
-              {submitting ? "Menerbitkan..." : "Terbitkan Postingan Sekarang"}
-            </button>
-            <Link href="/katalog" className="button button-outline">
-              Batal
-            </Link>
-          </p>
-        </fieldset>
-      </form>
+          <section className="post-form-section" aria-labelledby="post-step-three">
+            <div className="post-form-section-head">
+              <span className="post-step-number">03</span>
+              <div><h2 id="post-step-three">Waktu dan lokasi</h2><p>Berikan gambaran awal; detail sensitif dapat dibahas di chat.</p></div>
+            </div>
+            <div className="post-field-grid post-field-grid-three">
+              <div className="post-field">
+                <label htmlFor="post-date">Tanggal <span>Wajib</span></label>
+                <input type="date" id="post-date" name="date" value={formData.date} onChange={handleChange} disabled={submitting} aria-invalid={Boolean(errors.date)} />
+                {errors.date && <small className="field-error" role="alert">{errors.date}</small>}
+              </div>
+              <div className="post-field">
+                <label htmlFor="post-time">Jam mulai <span>Wajib</span></label>
+                <input type="time" id="post-time" name="time" value={formData.time} onChange={handleChange} disabled={submitting} aria-invalid={Boolean(errors.time)} />
+                {errors.time && <small className="field-error" role="alert">{errors.time}</small>}
+              </div>
+              <div className="post-field">
+                <label htmlFor="post-region">Wilayah <span>Wajib</span></label>
+                <select id="post-region" name="region" value={formData.region} onChange={handleChange} disabled={submitting} aria-invalid={Boolean(errors.region)}>
+                  <option value="">Pilih wilayah</option>
+                  <option value="sleman">Kabupaten Sleman</option>
+                  <option value="kota">Kota Yogyakarta</option>
+                  <option value="bantul">Kabupaten Bantul</option>
+                  <option value="kulonprogo">Kabupaten Kulon Progo</option>
+                  <option value="gunungkidul">Kabupaten Gunungkidul</option>
+                </select>
+                {errors.region && <small className="field-error" role="alert">{errors.region}</small>}
+              </div>
+            </div>
+            <div className="post-field-grid post-field-grid-split post-location-grid">
+              <div className="post-field">
+                <label htmlFor="post-address">Area atau titik temu <span>Wajib</span></label>
+                <input type="text" id="post-address" name="address" value={formData.address} onChange={handleChange} disabled={submitting} placeholder="Contoh: Pogung Baru, Mlati" aria-invalid={Boolean(errors.address)} />
+                <small>Gunakan area umum; alamat lengkap bisa dibagikan setelah cocok.</small>
+                {errors.address && <small className="field-error" role="alert">{errors.address}</small>}
+              </div>
+              <div className="post-field">
+                <label htmlFor="post-destination">Tujuan <em>Opsional</em></label>
+                <input type="text" id="post-destination" name="destination" value={formData.destination} onChange={handleChange} disabled={submitting} placeholder="Jika aktivitas berpindah lokasi" />
+                {errors.destination && <small className="field-error" role="alert">{errors.destination}</small>}
+              </div>
+            </div>
+          </section>
+
+          <section className="post-form-section" aria-labelledby="post-step-four">
+            <div className="post-form-section-head">
+              <span className="post-step-number">04</span>
+              <div><h2 id="post-step-four">Bentuk apresiasi</h2><p>Tidak harus selalu uang—pilih kesepakatan yang paling masuk akal.</p></div>
+            </div>
+            <div className="post-comp-grid">
+              {[
+                ["tarif", "comp-fixed", "Tarif pasti", "Nominal jelas sejak awal"],
+                ["nego", "comp-nego", "Nego di chat", "Sepakati setelah berdiskusi"],
+                ["patungan", "comp-split", "Patungan", "Transport, tiket, atau biaya kegiatan"],
+                ["traktir", "comp-treat", "Traktir", "Makan, minum, atau bentuk sederhana"],
+                ["sukarela", "comp-free", "Sukarela", "Tanpa kewajiban imbalan"],
+              ].map(([value, id, title, copy]) => (
+                <label className={`post-comp-card ${formData.compensation === value ? "is-selected" : ""}`} htmlFor={id} key={value}>
+                  <input type="radio" id={id} name="compensation" value={value} checked={formData.compensation === value} onChange={handleChange} disabled={submitting} />
+                  <strong>{title}</strong><small>{copy}</small>
+                </label>
+              ))}
+            </div>
+            {formData.compensation === "tarif" && (
+              <div className="post-field post-amount-field">
+                <label htmlFor="comp-amount">Nominal tarif</label>
+                <div className="post-currency-input"><span>Rp</span><input type="number" id="comp-amount" name="amount" value={formData.amount} onChange={handleChange} disabled={submitting} min="1000" step="5000" placeholder="50000" aria-invalid={Boolean(errors.amount)} /></div>
+                {errors.amount && <small className="field-error" role="alert">{errors.amount}</small>}
+              </div>
+            )}
+            {errors.compensation && <small className="field-error" role="alert">{errors.compensation}</small>}
+          </section>
+
+          <section className="post-form-section post-publish-section" aria-labelledby="post-step-five">
+            <div className="post-form-section-head">
+              <span className="post-step-number">05</span>
+              <div><h2 id="post-step-five">Periksa lalu terbitkan</h2><p>Pastikan detail dan apresiasi sudah sesuai.</p></div>
+            </div>
+            <label className="post-terms" htmlFor="terms-agree">
+              <input type="checkbox" id="terms-agree" name="terms" checked={formData.terms} onChange={handleChange} disabled={submitting} aria-invalid={Boolean(errors.terms)} />
+              <span>Saya menyetujui pedoman keamanan dan kesopanan komunitas NeedHelp.</span>
+            </label>
+            {errors.terms && <small className="field-error" role="alert">{errors.terms}</small>}
+            <div className="post-form-actions">
+              <button type="submit" className="button button-primary" disabled={submitting}>{submitting ? "Menerbitkan..." : "Terbitkan postingan"}<SvgIcon name="arrowRight" size={16} /></button>
+              <Link href="/katalog" className="button button-outline">Simpan nanti</Link>
+            </div>
+          </section>
+        </form>
+
+        <aside className="post-create-aside" aria-label="Preview dan panduan postingan">
+          <div className="post-preview-card">
+            <div className="post-preview-label"><span>Preview postingan</span><i>{formData.nature === "butuh" ? "Butuh partner" : "Siap membantu"}</i></div>
+            <h2>{formData.title || "Judul postinganmu akan tampil di sini"}</h2>
+            <p>{formData.description || "Tulis detail yang cukup agar orang lain yakin untuk menghubungimu."}</p>
+            <div className="post-preview-tags">
+              <span>{categoryLabel || "Kategori"}</span><span>{regionLabel || "Wilayah"}</span><span>{compensationLabel || "Apresiasi"}</span>
+            </div>
+          </div>
+          <div className="post-guide-card">
+            <span className="post-guide-icon"><SvgIcon name="shield" size={20} /></span>
+            <h3>Bagikan seperlunya</h3>
+            <ul><li>Jangan tulis nomor WhatsApp di postingan.</li><li>Mulai percakapan melalui chat NeedHelp.</li><li>Bagikan lokasi lengkap setelah merasa cocok.</li></ul>
+          </div>
+          <div className="post-quality-card">
+            <strong>Postingan yang bagus biasanya memuat:</strong>
+            <span>Tujuan jelas</span><span>Waktu realistis</span><span>Apresiasi transparan</span>
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }
