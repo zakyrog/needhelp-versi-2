@@ -41,6 +41,9 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Run automated tests
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ""
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ""
         run: npm test
 
       - name: Build standalone application
