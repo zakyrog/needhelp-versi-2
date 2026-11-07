@@ -17,6 +17,10 @@ import {
   deletePostSupabase,
   getPostLifecycleStatus,
   getMyActiveApplicationForPost,
+  getPostMatchStatus,
+  fetchPublicProfileReviews,
+  summarizeProfileReviews,
+  canPostReceiveApplications,
 } from "../../lib/data.js";
 import { isSupabaseConfigured, getSupabase } from "../../lib/supabase.js";
 import { resolveAvatarSrc } from "../../lib/avatars.js";
@@ -69,6 +73,7 @@ function DetailPostContent() {
   // Pengajuan aktif (pending/accepted) milik user untuk postingan ini, agar tombol
   // formulir tidak menawarkan pengajuan kedua. null = belum diketahui / tidak ada.
   const [myApplication, setMyApplication] = useState(null);
+  const [authorReviews, setAuthorReviews] = useState([]);
 
   useEffect(() => {
     if (!supabaseMode || !userId || !id) {
@@ -87,6 +92,22 @@ function DetailPostContent() {
       isCancelled = true;
     };
   }, [supabaseMode, userId, id]);
+
+  useEffect(() => {
+    if (!supabaseMode || !post?.authorId) {
+      setAuthorReviews([]);
+      return;
+    }
+    let isCancelled = false;
+    fetchPublicProfileReviews(post.authorId)
+      .then((reviews) => {
+        if (!isCancelled) setAuthorReviews(reviews);
+      })
+      .catch(() => {
+        if (!isCancelled) setAuthorReviews([]);
+      });
+    return () => { isCancelled = true; };
+  }, [supabaseMode, post?.authorId]);
 
   useEffect(() => {
     if (!id) return;
@@ -193,11 +214,14 @@ function DetailPostContent() {
   const isNeed = post.nature === "butuh";
   const authorAvatar = resolveAvatarSrc({ key: author.avatarKey, url: author.avatar });
   const authorInitial = (author.initial || author.name || "N").charAt(0).toUpperCase();
+  const reviewSummary = summarizeProfileReviews(authorReviews);
+  const matchStatus = getPostMatchStatus(post);
 
   // Status efektif diambil dari activities.status (lihat getPostLifecycleStatus).
-  // Hanya "aktif" yang boleh menerima pengajuan baru atau memulai chat.
+  // Post selesai tetap menerima pengajuan baru: "selesai" adalah riwayat match,
+  // bukan penutupan permanen. Hanya post batal/tidak dikenal yang diblokir.
   const lifecycle = getPostLifecycleStatus(post);
-  const isActive = lifecycle === "aktif";
+  const isActive = canPostReceiveApplications(post);
   // Pemilik pasti tidak boleh membuka formulir pengajuan; bila sesi belum
   // terverifikasi, mengklik link hanya akan diarahkan ke /login.
   const ownsThisPost = Boolean(
@@ -213,11 +237,9 @@ function DetailPostContent() {
   // mengajukan ulang, tetapi chat NeedHelp sudah boleh dibuka. RPC 010 tetap
   // menjadi pengaman utama terhadap pengajuan ganda.
   const closedMessage =
-    lifecycle === "selesai"
-      ? "Aktivitas bantuan untuk postingan ini sudah selesai. Pengajuan bantuan baru tidak lagi dibuka."
-      : lifecycle === "batal"
-        ? "Aktivitas untuk postingan ini sudah dibatalkan. Pengajuan bantuan baru tidak lagi dibuka."
-        : "Status postingan ini tidak dikenali, sehingga pengajuan bantuan baru tidak dibuka.";
+    lifecycle === "batal"
+      ? "Aktivitas untuk postingan ini sudah dibatalkan. Pengajuan bantuan baru tidak lagi dibuka."
+      : "Status postingan ini tidak dikenali, sehingga pengajuan bantuan baru tidak dibuka.";
   const typeLabel = isNeed ? "Saya Butuh" : "Saya Bisa";
   const categoryLabel = CATEGORY_LABELS[post.category] || post.category;
   // Tautan chat membawa post_id + user_id asli (UUID Supabase), bukan id seed.
@@ -245,34 +267,34 @@ function DetailPostContent() {
 
       <article className={`detail-article${isNeed ? " detail-article-need" : " detail-article-offer"}`}>
         <section className="requester-section">
-          {authorAvatar ? (
-            <img
-              src={authorAvatar}
-              alt=""
-              width={48}
-              height={48}
-              className="requester-img"
-            />
-          ) : (
-            <span className="requester-img-initial" aria-hidden="true">
-              {authorInitial}
+          <Link href={`/pengguna/${encodeURIComponent(author.id)}`} className="public-author-identity">
+            {authorAvatar ? (
+              <img src={authorAvatar} alt="" width={48} height={48} className="requester-img" />
+            ) : (
+              <span className="requester-img-initial" aria-hidden="true">{authorInitial}</span>
+            )}
+            <span>
+              <strong className="requester-name">{author.name}</strong>
+              <span className="requester-info">
+                {author.bio}
+                {author.verification ? (
+                  <span className="requester-verified">
+                    <SvgIcon name="shield" size={13} strokeWidth={2} /> {author.verification}
+                  </span>
+                ) : null}
+              </span>
             </span>
-          )}
-          <div>
-            <h3 className="requester-name">{author.name}</h3>
-            <p className="requester-info">
-              {author.bio}
-              {author.verification ? (
-                <span className="requester-verified">
-                  <SvgIcon name="shield" size={13} strokeWidth={2} /> {author.verification}
-                </span>
-              ) : null}
-            </p>
-          </div>
-          <div className="requester-rating">
+          </Link>
+          <Link href={`/pengguna/${encodeURIComponent(author.id)}`} className="requester-rating" aria-label={`Lihat rating dan ulasan ${author.name}`}>
             <SvgIcon name="star" size={13} strokeWidth={2} />
-            <span>{author.rating ? author.rating.split(" ")[0] : "4.9"}</span>
-          </div>
+            <span>
+              {reviewSummary.count > 0
+                ? `${reviewSummary.average.toFixed(1)} · ${reviewSummary.count} ulasan`
+                : author.rating
+                  ? author.rating
+                  : "Belum ada ulasan"}
+            </span>
+          </Link>
         </section>
 
         <header className="article-header">
@@ -285,11 +307,17 @@ function DetailPostContent() {
               {lifecycle === "aktif"
                 ? "Aktif"
                 : lifecycle === "selesai"
-                  ? "Selesai"
+                  ? "Aktivitas sebelumnya selesai"
                   : lifecycle === "batal"
                     ? "Dibatalkan"
                     : "Status tidak dikenal"}
             </span>
+            {matchStatus !== "open" && (
+              <span className={`match-badge match-badge-${matchStatus}`}>
+                <SvgIcon name="check" size={13} strokeWidth={2.5} />
+                {matchStatus === "selesai" ? "Pernah match · tetap terbuka" : "Sudah ada yang match · tetap terbuka"}
+              </span>
+            )}
           </div>
           <h1>{post.title}</h1>
           <p style={{ color: "var(--color-text-muted)", fontSize: "14px", margin: "8px 0 16px 0" }}>
@@ -350,11 +378,9 @@ function DetailPostContent() {
 
       <div className="detail-sidebar">
         {!isActive ? (
-          /* Read-only: post selesai/batal hanya boleh dilihat, termasuk oleh pemiliknya */
+          /* Read-only hanya untuk post batal atau status yang tidak dapat diverifikasi. */
           <section className="action-box" data-post-closed>
-            <h2>
-              {lifecycle === "selesai" ? "Postingan Sudah Selesai" : "Postingan Tidak Aktif"}
-            </h2>
+            <h2>Postingan Tidak Aktif</h2>
             <p>{closedMessage}</p>
             {isOwner && (
               <p style={{ fontSize: "14px", color: "var(--color-text-muted)" }}>

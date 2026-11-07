@@ -511,16 +511,15 @@ export function getPostWithStatus(id) {
 }
 
 export function getPublicPosts() {
-  return attachDemoActivityStatus(getPosts()).filter(isPostActive);
+  return attachDemoActivityStatus(getPosts()).filter(isPostVisibleInCatalog);
 }
 
 /**
- * Mengambil postingan yang masih aktif untuk beranda dan katalog.
+ * Mengambil postingan yang boleh tampil di beranda dan katalog.
  *
- * Aturan status (lihat getPostLifecycleStatus): hanya "aktif" yang ditampilkan.
- * Post dengan aktivitas 'selesai' atau 'batal' tetap ada di database, hanya tidak
- * ditampilkan. Kegagalan mengambil status aktivitas dilempar sebagai error (tidak
- * di-fallback diam-diam), supaya post selesai tidak tiba-tiba muncul lagi.
+ * Post 'aktif' dan 'selesai' ditampilkan. Status selesai menjadi penanda pernah
+ * mendapat match dan tetap menerima pengajuan; hanya post batal yang disembunyikan.
+ * Kegagalan mengambil status dilempar sebagai error agar frontend tidak menebak.
  *
  * @param {Object} [options] - Opsi untuk fetchPosts
  * @returns {Promise<Object[]>}
@@ -531,20 +530,20 @@ export async function fetchPublicPosts(options) {
   if (isSupabaseConfigured()) {
     const supabase = getSupabase();
     const withStatus = await injectActivityStatus(supabase, posts);
-    // Hanya post aktif yang disimpan ke cache sync getPost(). Post selesai/batal
+    // Simpan post yang boleh tampil ke cache sinkron. Post batal/tidak dikenal
     // tidak boleh muncul lagi lewat back-navigation dari cache ini.
-    const activePosts = withStatus.filter(isPostActive);
+    const visiblePosts = withStatus.filter(isPostVisibleInCatalog);
     const byId = new Map(_lastFetchedPosts.map((post) => [post.id, post]));
     for (const post of withStatus) {
-      if (isPostActive(post)) byId.set(post.id, post);
+      if (isPostVisibleInCatalog(post)) byId.set(post.id, post);
       else byId.delete(post.id);
     }
     _lastFetchedPosts = [...byId.values()];
-    return activePosts;
+    return visiblePosts;
   }
 
   const demoActivities = getActivities();
-  return attachDemoActivityStatus(posts, demoActivities).filter(isPostActive);
+  return attachDemoActivityStatus(posts, demoActivities).filter(isPostVisibleInCatalog);
 }
 
 // ---------------------------------------------------------------------------
@@ -561,6 +560,68 @@ export const PROFILE_SELECT_COLUMNS = "id, name, bio, avatar_url, initial, avata
  */
 export const PROFILE_SELECT_COLUMNS_WITH_AVATAR =
   "id, name, bio, avatar_url, initial, avatar_class, avatar_key";
+
+/** Mengambil profil yang aman ditampilkan kepada komunitas. */
+export async function fetchPublicProfile(userId) {
+  if (!userId) return null;
+
+  if (!isSupabaseConfigured()) {
+    return Object.values(PEOPLE).find((person) => String(person.id) === String(userId)) || null;
+  }
+
+  const supabase = getSupabase();
+  const { data, error } = await supabase.rpc("get_public_profile", {
+    p_user_id: userId,
+  });
+
+  if (error) {
+    if (error.code === "PGRST202" || /could not find the function|does not exist/i.test(error.message || "")) {
+      throw new Error("Profil publik membutuhkan migration 017.");
+    }
+    throw new Error(error.message || "Gagal memuat profil pengguna.");
+  }
+
+  return Array.isArray(data) ? data[0] || null : data || null;
+}
+
+/** Mengambil rating dan ulasan publik yang aman melalui RPC migration 017. */
+export async function fetchPublicProfileReviews(userId) {
+  if (!userId || !isSupabaseConfigured()) return [];
+
+  const supabase = getSupabase();
+  const { data, error } = await supabase.rpc("get_public_profile_reviews", {
+    p_user_id: userId,
+  });
+
+  if (error) {
+    if (error.code === "PGRST202" || /could not find the function|does not exist/i.test(error.message || "")) {
+      throw new Error("Profil rating publik membutuhkan migration 017.");
+    }
+    throw new Error(error.message || "Gagal memuat ulasan pengguna.");
+  }
+
+  return (data || []).map((row) => ({
+    id: String(row.review_id),
+    rating: Number(row.rating),
+    comment: row.comment || "",
+    createdAt: row.created_at,
+    reviewerId: String(row.reviewer_id),
+    reviewerName: row.reviewer_name || "Pengguna NeedHelp",
+    reviewerInitial: row.reviewer_initial || "N",
+    reviewerAvatarKey: row.reviewer_avatar_key || null,
+    postId: String(row.post_id),
+    postTitle: row.post_title || "Aktivitas NeedHelp",
+  }));
+}
+
+export function summarizeProfileReviews(reviews = []) {
+  const valid = reviews.filter((review) => Number.isFinite(Number(review.rating)));
+  const count = valid.length;
+  const average = count
+    ? valid.reduce((total, review) => total + Number(review.rating), 0) / count
+    : null;
+  return { count, average };
+}
 
 /**
  * Menilai apakah error Supabase disebabkan kolom `avatar_key` yang belum ada
@@ -810,9 +871,32 @@ export function getPostLifecycleStatus(post) {
   }
 }
 
-/** True bila postingan boleh muncul di beranda/katalog aktif dan menerima pengajuan baru. */
+/** True bila postingan belum memiliki aktivitas terminal. */
 export function isPostActive(post) {
   return getPostLifecycleStatus(post) === "aktif";
+}
+
+/**
+ * Selesai adalah penanda bahwa post pernah match, bukan penutupan permanen.
+ * Pengajuan baru hanya ditutup bila pemilik membatalkan postingan.
+ */
+export function canPostReceiveApplications(post) {
+  const lifecycle = getPostLifecycleStatus(post);
+  return lifecycle === "aktif" || lifecycle === "selesai";
+}
+
+/** Post selesai tetap terlihat sebagai bukti match; post batal disembunyikan. */
+export function isPostVisibleInCatalog(post) {
+  const lifecycle = getPostLifecycleStatus(post);
+  return lifecycle === "aktif" || lifecycle === "selesai";
+}
+
+/** Status match diturunkan dari aktivitas nyata, bukan angka buatan. */
+export function getPostMatchStatus(post) {
+  const status = post?.activity?.status;
+  if (status === "selesai") return "selesai";
+  if (status === "berlangsung") return "matched";
+  return "open";
 }
 
 /**
@@ -978,7 +1062,7 @@ export function getPost(id) {
 }
 
 /**
- * Mengambil satu postingan yang **masih aktif**, ditempelkan status aktivitas.
+ * Mengambil satu postingan yang boleh ditampilkan ke publik, berikut statusnya.
  *
  * Penting: memanggil getPost(id) langsung, BUKAN getPostWithStatus(id). Kedua
  * fungsi itu sebelumnya saling memanggil sehingga id yang tidak ditemukan
@@ -987,13 +1071,13 @@ export function getPost(id) {
  *   getPosts / getPublicPosts -> getPost -> getPostWithStatus -> getPublicPost
  *
  * @param {string} id
- * @returns {Object|null} postingan aktif, atau null bila tidak ada / tidak aktif
+ * @returns {Object|null} postingan publik, atau null bila tidak ada / dibatalkan
  */
 export function getPublicPost(id) {
   const post = getPost(id);
   if (!post) return null;
   const [withStatus] = attachDemoActivityStatus([post]);
-  if (!withStatus || !isPostActive(withStatus)) return null;
+  if (!withStatus || !isPostVisibleInCatalog(withStatus)) return null;
   return withStatus;
 }
 
@@ -1891,14 +1975,14 @@ export async function submitHelpApplication(postId, data) {
       throw new Error("Aktivitas ini sudah berlangsung. Pengajuan tidak dapat dilakukan.");
     }
     if (error.message.includes("Postingan tidak menerima pengajuan")) {
-      throw new Error("Postingan ini sudah selesai atau dibatalkan, sehingga tidak menerima pengajuan bantuan baru.");
+      throw new Error("Status postingan ini tidak valid untuk menerima pengajuan baru.");
     }
     if (error.message.includes("Postingan belum aktif")) {
       throw new Error("Postingan ini sedang tidak aktif. Pengajuan bantuan belum dapat dikirim.");
     }
     if (error.code === "PGRST202" || /could not find the function/i.test(error.message || "")) {
       throw new Error(
-        "Fitur pengajuan bantuan belum diperbarui di server. Migrasi 010 belum diterapkan pada database.",
+        "Fitur pengajuan bantuan belum diperbarui di server. Migrasi 017 belum diterapkan pada database.",
       );
     }
     throw new Error(error.message || "Gagal mengirim pengajuan bantuan.");
@@ -1983,6 +2067,11 @@ export async function acceptHelpApplication(applicationId) {
     }
     if (error.message.includes("Hanya pemilik postingan")) {
       throw new Error("Hanya pemilik postingan yang dapat menerima pengajuan.");
+    }
+    if (error.message.includes("sudah memiliki partner resmi")) {
+      throw new Error(
+        "Postingan ini sudah memiliki partner resmi. Pengajuan lain tetap dapat melanjutkan chat di NeedHelp.",
+      );
     }
     if (error.message.includes("sudah berlangsung")) {
       throw new Error("Aktivitas ini sudah berlangsung. Tidak dapat menerima pengajuan baru.");

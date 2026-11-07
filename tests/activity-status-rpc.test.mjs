@@ -96,7 +96,7 @@ test("activity_count = 1 dan status menunggu → postingan tampil (aktif)", asyn
   assert.ok(visibleIds(posts).includes(POST_IDS[0]));
 });
 
-test("activity_count = 1 dan status selesai/batal → tidak tampil", async () => {
+test("status selesai tetap tampil, sedangkan status batal disembunyikan", async () => {
   await stubSupabase({
     rpcResult: {
       data: [
@@ -107,7 +107,11 @@ test("activity_count = 1 dan status selesai/batal → tidak tampil", async () =>
     },
   });
   const posts = await fetchPosts();
-  assert.equal(posts.length, 0, "semua post punya status terminal → tidak ada yang tampil");
+  assert.deepEqual(
+    visibleIds(posts),
+    [POST_IDS[0]],
+    "selesai adalah penanda pernah match; hanya post batal yang disembunyikan",
+  );
 });
 
 test("activity_count = 2 (duplikat walau status sama) → ambiguous, tidak tampil", async () => {
@@ -205,7 +209,7 @@ test("keempat status valid dengan count 1 dan ambiguous=false berperilaku benar"
   const expected = {
     menunggu: true,
     berlangsung: true,
-    selesai: false,
+    selesai: true,
     batal: false,
   };
   for (const [status, visible] of Object.entries(expected)) {

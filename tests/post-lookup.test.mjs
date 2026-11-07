@@ -9,7 +9,7 @@
 //   size exceeded, bukan not-found biasa (null). Test ini memastikan:
 //     1. id tak dikenal -> null, dan tidak melempar error.
 //     2. postingan valid -> tetap ditemukan & status aktivitas melekat benar.
-//     3. getPublicPost hanya meloloskan postingan yang masih aktif.
+//     3. getPublicPost meloloskan post aktif/selesai, tetapi bukan post batal.
 //
 // Catatan: modul ini dijalankan tanpa `window`, jadi getPosts() = seed lokal
 // (src/data/posts.js), dan getUserPosts()/getActivityState() kosong.
@@ -75,8 +75,9 @@ test("postingan valid tetap lolos getPublicPost (perilaku tidak berubah)", () =>
   assert.equal(post.title, getPost(ACTIVE_SEED_ID).title);
 });
 
-test("getPublicPost menyaring postingan yang tidak aktif", () => {
-  // post-belajar ada di seed, tapi aktivitasnya "selesai" -> bukan publik.
+test("getPublicPost tetap menampilkan postingan selesai sebagai penanda match", () => {
+  // post-belajar ada di seed dan aktivitasnya selesai, tetapi tetap publik agar
+  // pengguna lain dapat melihat penanda match dan mengajukan bantuan baru.
   assert.ok(getPost(CLOSED_SEED_ID), "post tertutup tetap ada di data");
   const withStatus = getPostWithStatus(CLOSED_SEED_ID);
   assert.equal(
@@ -84,16 +85,14 @@ test("getPublicPost menyaring postingan yang tidak aktif", () => {
     "selesai",
     "postingan selesai harus terbaca sebagai selesai lewat getPostWithStatus",
   );
-  assert.equal(
-    getPublicPost(CLOSED_SEED_ID),
-    null,
-    "postingan selesai tidak boleh lolos getPublicPost",
-  );
+  const publicPost = getPublicPost(CLOSED_SEED_ID);
+  assert.ok(publicPost, "postingan selesai tetap boleh lolos getPublicPost");
+  assert.equal(publicPost.id, CLOSED_SEED_ID);
 });
 
 test("perilaku getPostWithStatus tidak bergantung pada getPublicPost", () => {
-  // Post tertutup: getPublicPost -> null, tetapi getPostWithStatus HARUS tetap
-  // mengembalikannya. Kalau ketergantungan lama kembali, hasilnya jadi null.
+  // Fungsi tetap tidak boleh kembali saling memanggil walaupun post selesai kini
+  // juga boleh tampil ke publik.
   const post = getPostWithStatus(CLOSED_SEED_ID);
   assert.ok(post, "getPostWithStatus harus mengembalikan post tertutup");
   assert.equal(post.id, CLOSED_SEED_ID);

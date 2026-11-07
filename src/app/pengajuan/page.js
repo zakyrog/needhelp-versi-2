@@ -135,6 +135,11 @@ function PengajuanContent() {
   const filteredApplications = filter === "all"
     ? applications
     : applications.filter((app) => app.status === filter);
+  const postsWithOfficialPartner = new Set(
+    applications
+      .filter((app) => app.status === "accepted")
+      .map((app) => String(app.postId)),
+  );
 
   // Loading state
   if (loading) {
@@ -245,7 +250,11 @@ function PengajuanContent() {
           </p>
         )}
         {filteredApplications.length > 0 ? (
-          filteredApplications.map((app) => (
+          filteredApplications.map((app) => {
+            const officialPartnerAlreadyChosen =
+              app.status === "pending" && postsWithOfficialPartner.has(String(app.postId));
+
+            return (
             <article
               key={app.id}
               id={`application-${app.id}`}
@@ -293,18 +302,20 @@ function PengajuanContent() {
                   >
                     <SvgIcon name="chat" size={14} strokeWidth={2} /> Chat Dulu
                   </Link>
-                  <button
-                    type="button"
-                    className="btn-detail-outline"
-                    onClick={() => handleAccept(app.id)}
-                    disabled={processingId === app.id}
-                    style={{
-                      color: "var(--color-action-primary)",
-                      borderColor: "var(--color-action-primary)",
-                    }}
-                  >
-                    {processingId === app.id ? "Memproses..." : (<><SvgIcon name="check" size={14} strokeWidth={3} /> Terima</>)}
-                  </button>
+                  {!officialPartnerAlreadyChosen && (
+                    <button
+                      type="button"
+                      className="btn-detail-outline"
+                      onClick={() => handleAccept(app.id)}
+                      disabled={processingId === app.id}
+                      style={{
+                        color: "var(--color-action-primary)",
+                        borderColor: "var(--color-action-primary)",
+                      }}
+                    >
+                      {processingId === app.id ? "Memproses..." : (<><SvgIcon name="check" size={14} strokeWidth={3} /> Terima</>)}
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="btn-detail-outline"
@@ -318,6 +329,13 @@ function PengajuanContent() {
                     {processingId === app.id ? "Memproses..." : (<><SvgIcon name="cross" size={14} strokeWidth={2.5} /> Tolak</>)}
                   </button>
                 </div>
+              )}
+
+              {officialPartnerAlreadyChosen && (
+                <p className="parallel-chat-note">
+                  Partner resmi untuk postingan ini sudah dipilih. Pengajuan ini
+                  tetap terbuka untuk percakapan dan tidak ditolak otomatis.
+                </p>
               )}
 
               {/* Info untuk status lain */}
@@ -341,7 +359,8 @@ function PengajuanContent() {
                 </p>
               )}
             </article>
-          ))
+            );
+          })
         ) : (
           <EmptyState
             icon="📋"

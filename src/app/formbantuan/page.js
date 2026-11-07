@@ -11,6 +11,7 @@ import {
   fetchPostById,
   fetchCurrentProfile,
   getPostLifecycleStatus,
+  canPostReceiveApplications,
   classifyActivityStatus,
   getMyActiveApplicationForPost,
 } from "../../lib/data";
@@ -41,8 +42,8 @@ function FormBantuanContent() {
   const [verifiedUserId, setVerifiedUserId] = useState(null);
   const [authChecked, setAuthChecked] = useState(!supabaseMode);
 
-  // Di mode Supabase, status post harus diambil segar (bukan dari cache) agar post
-  // yang baru selesai/dibatalkan tidak bisa menerima pengajuan lewat URL langsung.
+  // Di mode Supabase, status post harus diambil segar (bukan dari cache). Post
+  // selesai tetap terbuka; post batal harus tetap diblokir lewat URL langsung.
   const [post, setPost] = useState(() =>
     supabaseMode ? null : getPostWithStatus(postId),
   );
@@ -50,6 +51,8 @@ function FormBantuanContent() {
   const [postError, setPostError] = useState(null);
 
   const author = post ? getPostAuthor(post) : { name: "Sari Wijaya", initial: "S" };
+  const isNeedPost = post?.nature !== "bisa";
+  const proposalLabel = isNeedPost ? "Tawaran Bantuan" : "Permintaan Bantuan";
 
   useEffect(() => {
     if (!supabaseMode) {
@@ -144,11 +147,12 @@ function FormBantuanContent() {
     setStep(2);
   };
 
-  // Aturan yang sama dengan getPostLifecycleStatus: hanya post "aktif" boleh diajukan.
+  // Post "aktif" dan "selesai" boleh diajukan. Selesai hanya menjadi penanda
+  // bahwa post pernah mendapat match, bukan penutupan pengajuan baru.
   // Status "tidak diketahui" (RPC gagal, status tak dikenal, atau hasil ambigu)
   // TIDAK dianggap aktif sehingga form tidak pernah ditampilkan.
   const lifecycle = getPostLifecycleStatus(post);
-  const isActive = lifecycle === "aktif";
+  const isActive = canPostReceiveApplications(post);
   const activityKind = classifyActivityStatus(post?.activity).kind;
   const isOwnPost = Boolean(
     supabaseMode && verifiedUserId && post?.authorId === verifiedUserId,
@@ -292,7 +296,7 @@ function FormBantuanContent() {
         if (post && post.authorId) {
           saveMessage(
             post.authorId,
-            `[Penawaran Bantuan Baru] ${formData.helper_message.trim()} (Waktu: ${formData.helper_time.trim()})`,
+            `[${proposalLabel} Baru] ${formData.helper_message.trim()} (Waktu: ${formData.helper_time.trim()})`,
             post.title,
           );
         }
@@ -303,7 +307,7 @@ function FormBantuanContent() {
       setStep(3);
       showToast(
         supabaseMode
-          ? "Tawaran bantuan berhasil dikirimkan!"
+          ? `${proposalLabel} berhasil dikirimkan!`
           : "Tersimpan di perangkat ini (mode simulasi).",
         "success",
       );
@@ -394,8 +398,8 @@ function FormBantuanContent() {
     );
   }
 
-  // Post selesai/dibatalkan, milik sendiri, atau status tak diketahui: tidak boleh
-  // membuka form pengajuan.
+  // Post dibatalkan, milik sendiri, atau status tak diketahui tidak boleh
+  // membuka form pengajuan. Post selesai tetap boleh menerima pengajuan.
   if (!post || !isActive || isOwnPost) {
     const blockedReason = isOwnPost
       ? "own"
@@ -416,13 +420,11 @@ function FormBantuanContent() {
           description={
             blockedReason === "own"
               ? "Anda adalah pemilik postingan ini, jadi tidak dapat mengajukan bantuan untuknya."
-              : blockedReason === "selesai"
-                  ? "Aktivitas bantuan untuk postingan ini sudah selesai, sehingga pengajuan baru ditutup."
-                  : blockedReason === "batal"
-                    ? "Aktivitas untuk postingan ini sudah dibatalkan, sehingga pengajuan baru ditutup."
-                    : blockedReason === "error"
-                      ? "Status postingan tidak dapat diperiksa saat ini, sehingga pengajuan tidak dibuka untuk sementara. Coba muat ulang halaman."
-                      : "Status postingan ini tidak dikenali dengan pasti, sehingga pengajuan baru tidak dibuka."
+              : blockedReason === "batal"
+                ? "Aktivitas untuk postingan ini sudah dibatalkan, sehingga pengajuan baru ditutup."
+                : blockedReason === "error"
+                  ? "Status postingan tidak dapat diperiksa saat ini, sehingga pengajuan tidak dibuka untuk sementara. Coba muat ulang halaman."
+                  : "Status postingan ini tidak dikenali dengan pasti, sehingga pengajuan baru tidak dibuka."
           }
           actionText="Kembali ke Katalog"
           onAction={() => router.push("/katalog")}
@@ -459,7 +461,7 @@ function FormBantuanContent() {
         <div className="target-request-info">
           <span className="requester-avatar-sm">{author.initial || "S"}</span>
           <div className="target-text">
-            <small>Membantu permintaan dari</small>
+            <small>{isNeedPost ? "Menawarkan bantuan kepada" : "Meminta bantuan dari"}</small>
             <strong>
               {author.name} &bull; {post ? post.title : "Butuh bantuan"}
             </strong>
@@ -494,7 +496,7 @@ function FormBantuanContent() {
 
             <FormField
               id="helper-message"
-              label={`Pesan untuk ${author.name}`}
+              label={isNeedPost ? `Cara kamu dapat membantu ${author.name}` : `Bantuan yang kamu perlukan dari ${author.name}`}
               required
               error={errors.helper_message}
             >
@@ -504,14 +506,18 @@ function FormBantuanContent() {
                 rows={3}
                 value={formData.helper_message}
                 onChange={handleChange}
-                placeholder="Halo, saya tertarik membantu. Boleh dijelaskan lebih lanjut?"
+                placeholder={
+                  isNeedPost
+                    ? "Jelaskan cara kamu dapat membantu dan pengalaman yang relevan."
+                    : "Jelaskan bantuan yang kamu perlukan dari tawaran ini."
+                }
                 aria-invalid={Boolean(errors.helper_message)}
               />
             </FormField>
 
             <FormField
               id="helper-time"
-              label="Waktu kamu bisa membantu"
+              label={isNeedPost ? "Waktu kamu bisa membantu" : "Waktu yang kamu butuhkan"}
               required
               error={errors.helper_time}
             >
@@ -536,7 +542,7 @@ function FormBantuanContent() {
                 name="helper_note"
                 value={formData.helper_note}
                 onChange={handleChange}
-                placeholder="Catatan khusus atau alat yang kamu bawa..."
+                placeholder={isNeedPost ? "Keahlian, alat, atau catatan khusus..." : "Kondisi, lokasi, atau catatan khusus..."}
               />
             </FormField>
 
@@ -558,7 +564,7 @@ function FormBantuanContent() {
         {step === 2 && (
           <div className="review-section" style={{ padding: "16px 0" }}>
             <h2 style={{ fontSize: "18px", margin: "0 0 16px 0", fontWeight: 700 }}>
-              Tinjau Pengajuan Bantuan
+              Tinjau {proposalLabel}
             </h2>
             <div
               style={{
@@ -570,7 +576,7 @@ function FormBantuanContent() {
               }}
             >
               <p>
-                <strong>Nama Relawan:</strong> {formData.helper_name}
+                <strong>Nama Pengaju:</strong> {formData.helper_name}
               </p>
               <p className="proposal-privacy-note">
                 <SvgIcon name="shield" size={15} strokeWidth={2} />
@@ -578,10 +584,10 @@ function FormBantuanContent() {
                 chat di NeedHelp; kontak baru terbuka bila kedua pihak setuju.
               </p>
               <p>
-                <strong>Waktu Tersedia:</strong> {formData.helper_time}
+                <strong>{isNeedPost ? "Waktu Tersedia" : "Waktu Dibutuhkan"}:</strong> {formData.helper_time}
               </p>
               <p>
-                <strong>Pesan untuk Pemohon:</strong> {formData.helper_message}
+                <strong>Pesan untuk {author.name}:</strong> {formData.helper_message}
               </p>
               {formData.helper_note && (
                 <p>
@@ -605,7 +611,7 @@ function FormBantuanContent() {
                 onClick={handleFinalSubmit}
                 disabled={submitting}
               >
-                {submitting ? "Mengirimkan Tawaran..." : "Kirim Pengajuan Sekarang"}<SvgIcon name="check" size={16} strokeWidth={2.5} />
+                {submitting ? `Mengirimkan ${proposalLabel}...` : `Kirim ${proposalLabel} Sekarang`}<SvgIcon name="check" size={16} strokeWidth={2.5} />
               </button>
             </div>
           </div>
@@ -619,8 +625,8 @@ function FormBantuanContent() {
             </div>
             <h2 className="success-title">
               {submittedVia === "demo"
-                ? "Tawaran Bantuan Tersimpan (Mode Simulasi)"
-                : "Tawaran Bantuan Terkirim!"}
+                ? `${proposalLabel} Tersimpan (Mode Simulasi)`
+                : `${proposalLabel} Terkirim!`}
             </h2>
             {submittedVia === "demo" ? (
               <>
@@ -638,7 +644,7 @@ function FormBantuanContent() {
             ) : (
               <>
                 <p className="success-desc">
-                  {author.name} akan menerima tawaran bantuanmu dan notifikasi
+                  {author.name} akan menerima {proposalLabel.toLowerCase()}mu dan notifikasi
                   pengajuan baru. Chat NeedHelp sudah dapat dipakai untuk bertanya
                   dan menyepakati detail. WhatsApp bersifat opsional dan baru
                   terbuka jika kalian berdua menyetujuinya di ruang chat.
