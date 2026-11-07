@@ -1,0 +1,77 @@
+name: Build cPanel deployment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cpanel-production-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Validate public environment
+        shell: bash
+        run: |
+          test -n "$NEXT_PUBLIC_SUPABASE_URL"
+          test -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY"
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Run automated tests
+        run: npm test
+
+      - name: Build standalone application
+        run: npm run build -- --no-lint
+
+      - name: Verify standalone output
+        shell: bash
+        run: |
+          test -f .next/standalone/server.js
+          test -d .next/standalone/.next/static
+          test -d .next/standalone/public
+
+          build_id="$(cat .next/BUILD_ID)"
+          standalone_build_id="$(cat .next/standalone/.next/BUILD_ID)"
+          test "$build_id" = "$standalone_build_id"
+
+          printf 'commit=%s\nbuild_id=%s\n' "$GITHUB_SHA" "$build_id" > deployment-manifest.txt
+
+      - name: Package Linux deployment
+        shell: bash
+        run: |
+          tar -czf needhelp-cpanel-linux.tar.gz \
+            .next/standalone \
+            server.cjs \
+            package.json \
+            deployment-manifest.txt
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: needhelp-cpanel-linux
+          path: needhelp-cpanel-linux.tar.gz
+          if-no-files-found: error
+          retention-days: 14
