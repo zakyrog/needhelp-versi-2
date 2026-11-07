@@ -1739,19 +1739,31 @@ body:has(aside[aria-label="Penyaring Pencarian"]) main > section:last-of-type > 
 }
 
 .summary-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(112px, 0.8fr) minmax(0, 1.6fr);
+  align-items: start;
+  column-gap: 14px;
+  row-gap: 4px;
   font-size: 13px;
+  line-height: 1.5;
 }
 
 .summary-label {
   color: #7a9297;
+  overflow-wrap: break-word;
 }
 
 .summary-value {
   color: #0f2e33;
   font-weight: 600;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* ID postingan bisa sangat panjang (UUID): izinkan patah di mana saja
+   agar tidak meluber keluar dari kolom nilai. */
+.summary-row:first-child .summary-value {
+  overflow-wrap: anywhere;
 }
 
 /* Tombol Aksi */

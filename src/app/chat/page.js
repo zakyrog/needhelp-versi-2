@@ -115,6 +115,8 @@ function ChatContent() {
   const myUserId = readSession()?.id ? String(readSession().id) : null;
 
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
+  const isNearBottomRef = useRef(true);
   const activeIdRef = useRef(null);
 
   activeIdRef.current = activeId;
@@ -242,6 +244,8 @@ function ChatContent() {
   }, []);
 
   useEffect(() => {
+    // Ganti percakapan = anggap pengguna berada di dasar untuk pertama kali.
+    isNearBottomRef.current = true;
     if (!activeId) {
       setMessages([]);
       return;
@@ -401,9 +405,35 @@ function ChatContent() {
   }, [supabaseMode, loadConversations, myUserId]);
 
   // --- Scroll ke bawah saat pesan berubah ----------------------------------
+  // Penting: hanya menggulung area `.messages-container` (punya overflow-y
+  // sendiri), bukan `window`/halaman utama. Sebelumnya `scrollIntoView` pada
+  // sentinel ikut menggulung seluruh halaman hingga menyeret ke footer.
+  // Auto-scroll hanya berjalan saat pengguna berada dekat dasar percakapan,
+  // sehingga tidak memaksa gulir saat sedang membaca pesan lama.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    if (!isNearBottomRef.current) return;
+    container.scrollTop = container.scrollHeight;
   }, [messages.length, activeId]);
+
+  // Lacak apakah pengguna sedang berada dekat dasar percakapan. Auto-scroll
+  // tetap berjalan, tetapi jangan memaksa menggulung bila pengguna sedang
+  // membaca pesan lama.
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return undefined;
+
+    const updateNearBottom = () => {
+      const distanceFromBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight;
+      isNearBottomRef.current = distanceFromBottom <= 120;
+    };
+
+    updateNearBottom();
+    container.addEventListener("scroll", updateNearBottom, { passive: true });
+    return () => container.removeEventListener("scroll", updateNearBottom);
+  }, [activeId]);
 
   // --- Kirim pesan ----------------------------------------------------------
   const handleSendMessage = async (e) => {
@@ -858,7 +888,7 @@ function ChatContent() {
             </section>
 
             {/* Area Riwayat Pesan */}
-            <div className="messages-container">
+            <div className="messages-container" ref={messagesContainerRef}>
               {hasMore && (
                 <button
                   type="button"

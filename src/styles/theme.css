@@ -2520,6 +2520,14 @@ body:has(aside[aria-label="Penyaring Pencarian"])
   border-radius: var(--radius-md);
   padding: 14px 16px;
   position: relative;
+  flex-wrap: nowrap;
+}
+
+/* Kolom nama + bio: boleh menyusut dan terpotong elipsis, bukan mendesak
+   badge rating keluar dari barisnya. */
+.requester-section > div:not(.requester-rating) {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .card-user-initial {
@@ -2559,7 +2567,11 @@ body:has(aside[aria-label="Penyaring Pencarian"])
   color: var(--color-warning);
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  position: static;
+  margin-left: auto;
 }
 
 .requester-verified {
@@ -3549,12 +3561,17 @@ body > footer {
 
 .banner-proof-avatars {
   display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
 }
 
 .banner-proof-avatars img {
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 2px solid var(--color-bg-subtle);
   margin-left: -8px;
+  flex-shrink: 0;
 }
 .banner-proof-avatars img:first-child {
   margin-left: 0;
@@ -3566,6 +3583,30 @@ body > footer {
   line-height: 1.45;
   color: var(--color-text-secondary);
   font-weight: 600;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Layar sempit: avatar + teks tetap sejajar, tanpa tumpang-tindih. */
+@media (max-width: 600px) {
+  .banner-proof {
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .banner-proof-avatars img {
+    width: 26px;
+    height: 26px;
+    margin-left: -6px;
+  }
+  .banner-proof-text {
+    font-size: 12px;
+  }
+
+  /* Cegah iOS Safari melakukan auto-zoom saat field difokuskan.
+     Under 16px, browser memperbesar halaman untuk isian formulir. */
+  .field input {
+    font-size: 16px;
+  }
 }
 
 /* ============================================================
@@ -4727,8 +4768,8 @@ body.rating-page {
 
 .chat-main-container {
   max-width: 1392px;
-  margin: 24px auto;
-  padding: 0 40px;
+  margin: 32px auto 48px;
+  padding: 0 40px calc(24px + env(safe-area-inset-bottom, 0px));
   display: grid;
   grid-template-columns: 360px minmax(0, 1fr);
   gap: 24px;
@@ -4895,8 +4936,9 @@ body.chat-page .sidebar-search-box input:focus {
 .contact-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   flex-grow: 1;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -4905,6 +4947,7 @@ body.chat-page .sidebar-search-box input:focus {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .contact-info h3 {
@@ -4912,6 +4955,7 @@ body.chat-page .sidebar-search-box input:focus {
   font-weight: 700;
   color: var(--color-text-primary);
   margin: 0;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4933,7 +4977,9 @@ body.chat-page .sidebar-search-box input:focus {
 .contact-info p {
   font-size: 12px;
   color: var(--color-text-secondary);
+  line-height: 1.45;
   margin: 0;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5739,8 +5785,8 @@ body.chat-page .chat-room-pane {
 @media (max-width: 900px) {
   .chat-main-container {
     grid-template-columns: minmax(0, 1fr);
-    padding: 0 16px;
-    margin: 16px auto;
+    padding: 0 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    margin: 24px auto 40px;
     gap: 14px;
   }
 
@@ -5793,9 +5839,10 @@ body.chat-page .chat-room-pane {
 @media (max-width: 520px) {
   .chat-main-container {
     /* Layar ponsel sempit: biarkan halaman utama yang memberi gutters,
-       kotak obrolan mengikuti lebar penuh di dalamnya. */
-    padding: 0;
-    margin: 12px auto;
+       kotak obrolan mengikuti lebar penuh di dalamnya. Safe-area bawah
+       tetap dipertahankan agar input tidak tertutup bar navigasi. */
+    padding: 0 0 calc(20px + env(safe-area-inset-bottom, 0px));
+    margin: 16px auto 32px;
   }
 
   .contact-item {
