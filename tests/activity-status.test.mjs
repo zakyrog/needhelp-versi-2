@@ -18,7 +18,6 @@ import {
 const active = (status) => ({ kind: "active", status, ambiguous: false });
 const closed = (status) => ({ kind: "closed", status, ambiguous: false });
 const none = { kind: "none", status: null, ambiguous: false };
-const unknown = { kind: "unknown", status: null, ambiguous: true };
 const failed = { kind: "error", error: new Error("rpc down") };
 
 test("tanpa aktivitas -> none -> aktif", () => {
