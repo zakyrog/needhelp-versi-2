@@ -133,8 +133,9 @@ test -f .next/standalone/server.js \
 ## 6. Database dan migration Supabase
 
 - Jalankan file migration secara berurutan berdasarkan nama.
-- Migration terbaru adalah
-  `017_parallel_conversations_and_public_reviews.sql`.
+- Migration terbaru adalah `018_create_conversation_on_application.sql`.
+  Migration ini membuat ruang chat dalam transaksi yang sama saat pengajuan
+  dikirim; status pengajuan tetap `pending` dan WhatsApp tetap terkunci.
 - SQL dijalankan melalui Supabase SQL Editor sebagai query SQL biasa, bukan
   ditempel ke halaman Schema Visualizer.
 - Setelah menjalankan migration, baca hasil/error; jangan mengulang migration

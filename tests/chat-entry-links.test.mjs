@@ -100,6 +100,32 @@ test("halaman detail membuka chat setelah pengajuan dikirim", () => {
   );
 });
 
+test("form pengajuan langsung membuat dan membuka percakapan", () => {
+  const formPage = fs.readFileSync(
+    path.join(SRC, "app", "formbantuan", "page.js"),
+    "utf8",
+  );
+
+  const submitAt = formPage.indexOf("await submitHelpApplication(postId");
+  const conversationAt = formPage.indexOf("await getOrCreateConversation({", submitAt);
+  const redirectAt = formPage.indexOf("router.replace(`/chat?c=", conversationAt);
+
+  assert.ok(submitAt >= 0, "form harus mengirim pengajuan");
+  assert.ok(
+    conversationAt > submitAt,
+    "percakapan harus dibuat setelah pengajuan berhasil tersimpan",
+  );
+  assert.ok(
+    redirectAt > conversationAt,
+    "pengguna harus langsung diarahkan ke conversation yang dibuat",
+  );
+  assert.match(
+    formPage,
+    /partnerId:\s*post\.authorId/,
+    "partner chat harus pemilik postingan, bukan id dari input pengguna",
+  );
+});
+
 test("subscribeToPostChanges aman tanpa konfigurasi Supabase", async () => {
   const mod = await import("../src/lib/notification-realtime.js");
   assert.equal(typeof mod.subscribeToPostChanges, "function");

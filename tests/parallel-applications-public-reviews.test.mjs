@@ -9,6 +9,14 @@ const migrationUrl = new URL(
 
 const migration = await readFile(migrationUrl, "utf8");
 
+const chatOnApplicationMigration = await readFile(
+  new URL(
+    "../supabase/migrations/018_create_conversation_on_application.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
 function functionBody(name) {
   const start = migration.indexOf(`CREATE OR REPLACE FUNCTION public.${name}`);
   assert.notEqual(start, -1, `${name} harus tersedia di migration 017`);
@@ -27,6 +35,27 @@ test("menerima satu kandidat tidak otomatis menolak kandidat pending lain", () =
   const accept = functionBody("accept_help_application");
   assert.doesNotMatch(accept, /SET\s+status\s*=\s*'rejected'[\s\S]*status\s*=\s*'pending'/i);
   assert.match(accept, /Kandidat lain tetap dapat melanjutkan chat/i);
+});
+
+test("pengajuan pending langsung membuat conversation tanpa menerima pengajuan", () => {
+  assert.match(
+    chatOnApplicationMigration,
+    /INSERT INTO public\.help_applications[\s\S]*?'pending'/i,
+  );
+  assert.match(
+    chatOnApplicationMigration,
+    /INSERT INTO public\.conversations\s*\(post_id, owner_id, partner_id\)[\s\S]*?ON CONFLICT\s*\(post_id, owner_id, partner_id\)\s*DO NOTHING/i,
+  );
+  assert.doesNotMatch(
+    chatOnApplicationMigration,
+    /SET\s+status\s*=\s*'accepted'/i,
+    "membuat chat tidak boleh otomatis menerima pengajuan",
+  );
+  assert.doesNotMatch(
+    chatOnApplicationMigration,
+    /conversation_contact_shares|whatsapp_number/i,
+    "membuat chat tidak boleh membagikan WhatsApp",
+  );
 });
 
 test("rating publik hanya diekspos lewat RPC aman dan dapat dibaca pengguna", () => {

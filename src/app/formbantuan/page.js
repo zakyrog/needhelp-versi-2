@@ -21,6 +21,7 @@ import { FormField } from "../../components/FormField";
 import { useToast } from "../../components/Toast";
 import { SimulationBanner } from "../../components/SimulationBanner";
 import { isSupabaseConfigured, getSupabase } from "../../lib/supabase";
+import { getOrCreateConversation } from "../../lib/chat";
 import { SvgIcon } from "../../components/Icons.jsx";
 
 function FormBantuanContent() {
@@ -35,6 +36,7 @@ function FormBantuanContent() {
   const loginHref = `/login?next=${encodeURIComponent(`/formbantuan?id=${postId}`)}`;
 
   const supabaseMode = isSupabaseConfigured();
+  const [chatStartError, setChatStartError] = useState(null);
 
   // Identitas yang SUDAH diverifikasi Supabase Auth. `post.owned` hanya turunan
   // dari cache user saat fetch dan bisa salah (misalnya sesi belum terbaca),
@@ -261,6 +263,7 @@ function FormBantuanContent() {
     }
 
     setSubmitting(true);
+    setChatStartError(null);
 
     try {
       if (supabaseMode) {
@@ -288,6 +291,30 @@ function FormBantuanContent() {
           extraNote: formData.helper_note.trim(),
         });
         setSubmittedVia("supabase");
+
+        // Pengajuan pending sudah merupakan hubungan yang sah untuk chat.
+        // Migration 018 membuat conversation dalam transaksi yang sama; RPC
+        // idempoten ini mengambil id-nya dan langsung membuka ruang chat.
+        // Bila navigasi chat gagal, pengajuan tetap sukses dan langkah 3
+        // menyediakan tombol percobaan ulang tanpa mengirim pengajuan kedua.
+        try {
+          const conversationId = await getOrCreateConversation({
+            postId,
+            partnerId: post.authorId,
+          });
+          setSubmitting(false);
+          showToast(`${proposalLabel} terkirim. Ruang chat sudah dibuka.`, "success");
+          router.replace(`/chat?c=${encodeURIComponent(conversationId)}`);
+          return;
+        } catch (chatError) {
+          console.warn(
+            "[formbantuan] Pengajuan tersimpan, tetapi chat tidak dapat dibuka otomatis:",
+            chatError?.message,
+          );
+          setChatStartError(
+            chatError?.message || "Ruang chat belum dapat dibuka otomatis.",
+          );
+        }
       } else {
         // Mode demo: hanya localStorage. Tidak ada record Supabase, jadi tidak
         // ada notifikasi ke pemilik postingan. Simpan pesan demo supaya alur
@@ -649,6 +676,12 @@ function FormBantuanContent() {
                   dan menyepakati detail. WhatsApp bersifat opsional dan baru
                   terbuka jika kalian berdua menyetujuinya di ruang chat.
                 </p>
+                {chatStartError ? (
+                  <p className="form-error" role="alert">
+                    Pengajuan sudah tersimpan, tetapi chat belum terbuka otomatis: {chatStartError}
+                    {" "}Gunakan tombol chat di bawah untuk mencoba lagi.
+                  </p>
+                ) : null}
                 <ol className="proposal-next-steps">
                   <li><strong>Pengajuan terkirim</strong><span>Status awal: menunggu keputusan.</span></li>
                   <li><strong>Mulai chat di NeedHelp</strong><span>Kamu tetap dapat mengirim pesan selama menunggu.</span></li>
